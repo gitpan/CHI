@@ -43,7 +43,6 @@ lib/CHI/Test/Logger.pm
 lib/CHI/Test/Memcached/Driver.pm
 lib/CHI/Test/Util.pm
 lib/CHI/Util.pm
-lib/use.out
 LICENSE
 Makefile.PL
 MANIFEST			This list of files
