@@ -45,6 +45,7 @@ sub new {
 
     my %defaults = (
         driver       => 'Memory',
+        namespace    => 'Default',
         on_get_error => 'log',
         on_set_error => 'log',
     );
@@ -213,7 +214,7 @@ sub is_valid {
 sub set {
     my ( $self, $key, $value, $options ) = @_;
     croak "must specify key" unless defined($key);
-    return                   unless defined($value);
+    return unless defined($value);
 
     # Fill in $options if not passed, copy if passed, and apply defaults.
     #

@@ -1,11 +1,12 @@
 package CHI;
+use 5.006;
 use strict;
 use warnings;
 use Carp;
 use CHI::NullLogger;
 use CHI::Util qw(require_dynamic);
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 our $Logger = CHI::NullLogger->new();    ## no critic
 
@@ -99,8 +100,11 @@ The CHI interface is implemented by driver classes that support fetching, storin
 clearing of data. Driver classes exist or will exist for the gamut of storage backends
 available to Perl, such as memory, plain files, memory mapped files, memcached, and DBI.
 
-CHI is intended as an evolution of DeWitt Clinton's venerable L<Cache::Cache|Cache::Cache> package.
-See L<Relation to Cache::Cache|RELATION TO OTHER MODULES/Cache::Cache>.
+CHI is intended as an evolution of DeWitt Clinton's L<Cache::Cache|Cache::Cache> package,
+adhering to the basic Cache API but adding new features and addressing limitations in the
+Cache::Cache implementation.
+
+=for readme stop
 
 =head1 CONSTRUCTOR
 
@@ -119,12 +123,34 @@ The exact CHI::Driver subclass to drive the cache, for example "My::Memory::Driv
 
 =item namespace [STRING]
 
-Identifies a namespace that all cache entries for this object will be in. This allows
-separation of multiple caches with different data but conflicting keys.
+Identifies a namespace that all cache entries for this object will be in. This allows easy
+separation of multiple, distinct caches without worrying about key collision.
 
-Defaults to the package from which new() was called, which means that each package will
-automatically have its own cache. If you want multiple packages to share the same cache,
-just decide a common namespace like 'main'.
+Suggestions for easy namespace selection:
+
+=over
+
+=item *
+
+In a class, use the class name:
+
+    CHI->new(namespace => __PACKAGE__, ...);
+
+=item *
+
+In a script, use the script's absolute path name:
+
+    use Cwd qw(realpath);
+    CHI->new(namespace => realpath($0), ...);
+
+=item *
+
+In a web template, use the template name. For example, in Mason, $m-e<gt>cache will set
+the namespace to the current component path.
+
+=back
+
+Defaults to 'Default' if not specified.
 
 =item expires_in [DURATION]
 
@@ -191,7 +217,8 @@ I<$key> may be followed by one or more name/value parameters:
 
 If I<$key> exists and has not expired, call code reference with the
 L<CHI::CacheObject|CHI::CacheObject> as a single parameter. If code returns a true value,
-expire the data. e.g.
+expire the data. For example, to expire the cache if I<$file> has changed since
+the value was computed:
 
     $cache->get('foo', expire_if => sub { $_[0]->created_at < (stat($file))[9] });
 
@@ -220,7 +247,7 @@ defaults in the cache constructor.
 =item expires_in [DURATION]
 
 Amount of time until this data expires, in the form of a L<duration expressions|/DURATION
-EXPRESSIONS>.
+EXPRESSIONS> - e.g. "10 seconds" or "5 minutes".
 
 =item expires_at [NUM]
 
@@ -395,9 +422,10 @@ C<on_get_error>, and C<on_set_error>.
 
 =head1 DURATION EXPRESSIONS
 
-Various options like I<expire_in> take a duration expression. This will be parsed by
-L<Time::Duration::Parse|Time::Duration::Parse>. It is either a plain number, which is treated like a number of
-seconds, or a number and a string representing time units where the string is one of:
+Duration expressions, which appear in the L</set> command and various other parts of the
+API, are parsed by L<Time::Duration::Parse|Time::Duration::Parse>. A duration is either a
+plain number, which is treated like a number of seconds, or a number and a string
+representing time units where the string is one of:
 
     s second seconds sec secs
     m minute minutes min mins
@@ -414,6 +442,8 @@ e.g. the following are all valid duration expressions:
     5 seconds
     1 minute and ten seconds
     1 hour
+
+=for readme continue
 
 =head1 AVAILABILITY OF DRIVERS
 
@@ -449,6 +479,8 @@ L<CHI::Driver::Multilevel|CHI::Driver::Multilevel> - Cache formed from several s
 L<CHI::Driver::CacheCache|CHI::Driver::CacheCache> - CHI wrapper for Cache::Cache
 
 =back
+
+=for readme stop
 
 =head1 IMPLEMENTING NEW DRIVERS
 
@@ -508,7 +540,8 @@ Override this if you want to provide an efficient method of clearing a namespace
 The default implementation will iterate over all keys and call L</remove> for each.
 
 =item _serialize ( $value )
-=item _deserialize ( $value )
+
+=item _deserialize ( $serialized_value )
 
 Override these if you want to change the serialization method used for references. The
 default is Storable freeze/thaw.
@@ -536,11 +569,12 @@ but are not required for basic cache operations.
 
 =item get_keys ( $self )
 
-Return all keys in the namespace. It is acceptable to return expired keys as well.
+Return all keys in the namespace. It is acceptable to include or omit expired keys.
 
 =item get_namespaces ( $self )
 
-Return namespaces associated with the cache.
+Return namespaces associated with the cache. It is acceptable to include or omit namespaces
+with no valid keys.
 
 =back
 
@@ -564,6 +598,8 @@ and L<Catalyst::Log|Catalyst::Log> among others.
 
 Warning: CHI-E<gt>logger is a temporary API. The intention is to replace this with Log::Any
 (L<http://use.perl.org/~jonswar/journal/34366>).
+
+=for readme continue
 
 =head1 RELATION TO OTHER MODULES
 
@@ -612,9 +648,9 @@ backends. CHI does not reinvent these but simply wraps them with an appropriate
 driver. For example, CHI::Driver::Memcached and CHI::Driver::FastMmap are thin layers
 around Cache::Memcached and Cache::FastMmap.
 
-Of course, because these modules are full-featured, there will be considerable
-overlap. Cache::FastMmap, for example, already has code to serialize data structures and
-to associate expiration times with items. Here's how CHI resolves these issues.
+Of course, because these modules already work on their own, there will be some overlap.
+Cache::FastMmap, for example, already has code to serialize data and handle expiration
+times. Here's how CHI resolves these overlaps.
 
 =over
 
@@ -635,39 +671,59 @@ At some point CHI will provide the option of explicitly notifying the backend of
 expiration time as well. This might allow the backend to do better storage management,
 etc., but would prevent CHI from examining expired items.
 
-=item Overhead
-
-Naturally, using Cache::FastMmap through CHI will never be as time or storage efficient as
-simply using Cache::FastMmap.  In terms of performance, we've attempted to make the overhead
-as small as possible (benchmarks coming soon). In terms of storage size, CHI adds about 16
-bytes of metadata overhead to each item. How much this matters obviously depends on the
-typical size of items in your cache.
-
 =back
 
-=head1 SUPPORT
+Naturally, using CHI's FastMmap or Memcached driver will never be as time or storage
+efficient as simply using Cache::FastMmap or Cache::Memcached.  In terms of performance,
+we've attempted to make the overhead as small as possible, on the order of 5% per get or
+set (benchmarks coming soon). In terms of storage size, CHI adds about 16 bytes of
+metadata overhead to each item. How much this matters obviously depends on the typical
+size of items in your cache.
+
+=head1 SUPPORT AND DOCUMENTATION
 
 Questions and feedback are welcome, and should be directed to the perl-cache mailing list:
 
     http://groups.google.com/group/perl-cache-discuss
 
+Bugs and feature requests will be tracked at RT:
+
+    http://rt.cpan.org/NoAuth/Bugs.html?Dist=CHI
+
+The latest source code is available at:
+
+    http://code.google.com/p/perl-cache/wiki/Source
+
 =head1 TODO
 
 See the TODO file in the root of this distribution.
 
-=head1 SEE ALSO
+=head1 ACKNOWLEDGMENTS
 
-L<Cache::Cache|Cache::Cache>, L<Cache::Memcached|Cache::Memcached>, L<Cache::FastMmap|Cache::FastMmap>
+Thanks to Dewitt Clinton for the original Cache::Cache, to Rob Mueller for the Perl cache
+benchmarks, and to Perrin Harkins for the discussions that got this going.
+
+CHI was originally designed and developed for the Digital Media group of the Hearst
+Corporation, a diversified media company based in New York City.  Many thanks to Hearst
+management for agreeing to this open source release.
 
 =head1 AUTHOR
 
 Jonathan Swartz
 
+=head1 SEE ALSO
+
+L<Cache::Cache|Cache::Cache>, L<Cache::Memcached|Cache::Memcached>, L<Cache::FastMmap|Cache::FastMmap>
+
 =head1 COPYRIGHT & LICENSE
 
 Copyright (C) 2007 Jonathan Swartz.
 
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
+CHI is provided "as is" and without any express or implied warranties, including, without
+limitation, the implied warranties of merchantibility and fitness for a particular
+purpose.
+
+This program is free software; you can redistribute it and/or modify it under the same
+terms as Perl itself.
 
 =cut
