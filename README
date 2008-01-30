@@ -172,7 +172,25 @@ SUPPORT AND DOCUMENTATION
         http://code.google.com/p/perl-cache/wiki/Source
 
 TODO
-    See the TODO file in the root of this distribution.
+    *   Integrate CHI with Mason, and create CHI plugins for Catalyst and
+        CGI::Application
+
+    *   Perform cache benchmarks comparing both CHI and non-CHI cache
+        implementations
+
+    *   Separate FastMmap and Memcached drivers into their own CPAN
+        distributions
+
+    *   Release BerkeleyDB and DBI drivers as separate CPAN distributions
+
+    *   Add docs comparing various strategies for reducing miss stampedes
+        and cost of recomputes
+
+    *   Add expires_next syntax (e.g. expires_next => 'hour')
+
+    *   Support automatic serialization and escaping of keys
+
+    *   Create XS versions of main functions in Driver.pm (e.g. get, set)
 
 ACKNOWLEDGMENTS
     Thanks to Dewitt Clinton for the original Cache::Cache, to Rob Mueller

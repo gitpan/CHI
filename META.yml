@@ -18,7 +18,6 @@ no_index:
     - inc
     - t
 requires: 
-  Class::Accessor::Fast: 0
   Data::UUID: 0
   Digest::JHash: 0
   File::Slurp: 0
@@ -27,7 +26,8 @@ requires:
   List::MoreUtils: 0.13
   Module::Find: 0.05
   Module::Load::Conditional: 0
+  Moose: 0.33
   Storable: 0
   Time::Duration::Parse: 0.03
   perl: 5.6.0
-version: 0.04
+version: 0.05

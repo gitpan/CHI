@@ -1,27 +1,30 @@
 package CHI::Driver::Multilevel;
-use strict;
-use warnings;
 use Carp;
+use CHI::Util qw(dp);
 use Hash::MoreUtils qw(slice_exists);
 use List::MoreUtils qw(uniq);
-use base qw(CHI::Driver);
+use Moose;
+use strict;
+use warnings;
 
-__PACKAGE__->mk_ro_accessors(qw(subcaches));
+extends 'CHI::Driver';
+
+has 'subcaches' => ( is => 'ro', isa => 'ArrayRef', required => 1 );
+
+__PACKAGE__->meta->make_immutable();
 
 # TODO: Do a better job determining, and documenting, how constructor and get and set
 # options get passed from parent cache to subcaches
 
-sub new {
-    my $class = shift;
-    my $self  = $class->SUPER::new(@_);
+sub BUILD {
+    my ( $self, $params ) = @_;
 
-    my $subcaches = $self->{subcaches}
-      or croak "missing required parameter 'subcaches'";
+    my $subcaches = $self->{subcaches};
     my %subparams = slice_exists( $_[0], 'namespace' );
     foreach my $subcache (@$subcaches) {
         if ( ref($subcache) eq 'HASH' ) {
             my $subcache_options = $subcache;
-            my $chi_class        = caller();    # should be CHI or a subclass
+            my $chi_class = 'CHI';    # TODO: make this work with CHI subclasses
             $subcache = $chi_class->new( %subparams, %$subcache_options );
             if (
                 my ($option) =
@@ -34,8 +37,6 @@ sub new {
         }
         $subcache->is_subcache(1);
     }
-
-    return $self;
 }
 
 sub get {

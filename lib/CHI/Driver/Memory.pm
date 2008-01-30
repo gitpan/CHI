@@ -1,17 +1,22 @@
 package CHI::Driver::Memory;
+use Moose;
 use strict;
 use warnings;
-use base qw(CHI::Driver);
+
+extends 'CHI::Driver';
 
 my $Default_Datastore = {};
 
-sub new {
-    my $class = shift;
-    my $self  = $class->SUPER::new(@_);
-    $self->{datastore} ||= $Default_Datastore;
+has 'datastore' =>
+  ( is => 'ro', isa => 'HashRef', default => sub { $Default_Datastore } );
+
+__PACKAGE__->meta->make_immutable();
+
+sub BUILD {
+    my ( $self, $params ) = @_;
+
     $self->{datastore}->{ $self->namespace } ||= {};
     $self->{datastore_for_namespace} = $self->{datastore}->{ $self->namespace };
-    return $self;
 }
 
 sub fetch {

@@ -1,24 +1,28 @@
 package CHI::Driver::Memcached;
-use strict;
-use warnings;
 use Cache::Memcached;
 use Carp;
-use base qw(CHI::Driver::Base::CacheContainer);
+use Moose;
+use strict;
+use warnings;
 
-__PACKAGE__->mk_ro_accessors(
-    qw(compress_threshold debug memd no_rehash servers));
+extends 'CHI::Driver::Base::CacheContainer';
 
-sub new {
-    my $class = shift;
-    my $self  = $class->SUPER::new(@_);
+has 'compress_threshold' => ( is => 'ro' );
+has 'debug'              => ( is => 'ro' );
+has 'memd'               => ( is => 'ro' );
+has 'no_rehash'          => ( is => 'ro' );
+has 'servers'            => ( is => 'ro' );
+
+__PACKAGE__->meta->make_immutable();
+
+sub BUILD {
+    my ( $self, $params ) = @_;
 
     my %mc_params =
       ( map { exists( $self->{$_} ) ? ( $_, $self->{$_} ) : () }
           qw(compress_threshold debug namespace no_rehash servers) );
     $self->{_contained_cache} = $self->{memd} =
       Cache::Memcached->new( \%mc_params );
-
-    return $self;
 }
 
 # Memcached supports fast multiple get

@@ -1,12 +1,12 @@
 package CHI;
 use 5.006;
-use strict;
-use warnings;
 use Carp;
 use CHI::NullLogger;
 use CHI::Util qw(require_dynamic);
+use strict;
+use warnings;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 our $Logger = CHI::NullLogger->new();    ## no critic
 
@@ -696,7 +696,41 @@ The latest source code is available at:
 
 =head1 TODO
 
-See the TODO file in the root of this distribution.
+=over
+
+=item *
+
+Integrate CHI with Mason, and create CHI plugins for Catalyst and CGI::Application
+
+=item *
+
+Perform cache benchmarks comparing both CHI and non-CHI cache implementations
+
+=item *
+
+Separate FastMmap and Memcached drivers into their own CPAN distributions
+
+=item *
+
+Release BerkeleyDB and DBI drivers as separate CPAN distributions
+
+=item *
+
+Add docs comparing various strategies for reducing miss stampedes and cost of recomputes
+
+=item *
+
+Add expires_next syntax (e.g. expires_next => 'hour')
+
+=item *
+
+Support automatic serialization and escaping of keys
+
+=item *
+
+Create XS versions of main functions in Driver.pm (e.g. get, set)
+
+=back
 
 =head1 ACKNOWLEDGMENTS
 
