@@ -1,5 +1,12 @@
 Revision history for CHI
 
+0.06  Feb 29, 2008
+
+- Created separate manual for developing drivers (CHI::Driver::Development)
+- Made standard CHI driver tests easily available to external drivers
+- Fixed clear() in Memcached driver - reported by Justin Ellison
+- Add size to set logs
+
 0.05  Jan 30, 2008
 
 - Switched to Moose

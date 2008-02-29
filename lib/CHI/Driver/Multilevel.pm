@@ -20,7 +20,8 @@ sub BUILD {
     my ( $self, $params ) = @_;
 
     my $subcaches = $self->{subcaches};
-    my %subparams = slice_exists( $_[0], 'namespace' );
+    my %subparams =
+      slice_exists( $_[0], 'namespace', 'on_get_error', 'on_set_error' );
     foreach my $subcache (@$subcaches) {
         if ( ref($subcache) eq 'HASH' ) {
             my $subcache_options = $subcache;

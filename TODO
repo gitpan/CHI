@@ -1,9 +1,11 @@
 TO DO
 
+* Add test for make_immutable in all Moose classes
 * Create Cache::Bench from Rob's cacheperl; run full suite of benchmarks comparing CHI and non-CHI caches
 * Separate FastMmap and Memcached drivers into their own CPAN distributions
 * BerkeleyDB driver (w/separate file per namespace, must handle locking)
 * DBI driver (at least mysql)
+* Do auto-key-digesting for too-long keys - eliminates max key length - can work regardless of driver, but each driver can have its own default max key length, and will have to store key inside metadata in just this case
 * Offer several serialization options (Storable, YAML, YAML::Syck, Data::Dumper) w/o need to subclass
 * Add cache signature, encapsulating CHI's metadata version and options to the driver, as a second differentiator alongside namespace
 * Convert to Log::Any

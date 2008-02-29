@@ -222,7 +222,7 @@ sub set {
     }
 
     my $log = CHI->logger();
-    $self->_log_set_result( $log, $key ) if $log->is_debug;
+    $self->_log_set_result( $log, $key, $value ) if $log->is_debug;
 
     return $value;
 }
@@ -336,6 +336,38 @@ sub is_empty {
     return !$self->get_keys();
 }
 
+{
+
+    # Escape/unescape keys and namespaces for filename safety - used by various
+    # drivers.  Adapted from URI::Escape, but use '+' for escape character, like Mason's
+    # compress_path.
+    #
+    my %escapes;
+    for ( 0 .. 255 ) {
+        $escapes{ chr($_) } = sprintf( "+%02x", $_ );
+    }
+
+    my $_fail_hi = sub {
+        my $chr = shift;
+        Carp::croak( sprintf "Can't escape multibyte character \\x{%04X}",
+            ord($chr) );
+    };
+
+    sub escape_for_filename {
+        my ( $self, $text ) = @_;
+
+        $text =~ s/([^\w\=\-\~])/$escapes{$1} || $_fail_hi->($1)/ge;
+        $text;
+    }
+
+    sub unescape_for_filename {
+        my ( $self, $str ) = @_;
+
+        $str =~ s/\+([0-9A-Fa-f]{2})/chr(hex($1))/eg if defined $str;
+        $str;
+    }
+}
+
 sub _set_object {
     my ( $self, $key, $obj ) = @_;
 
@@ -358,14 +390,15 @@ sub _log_get_result {
 }
 
 sub _log_set_result {
-    my ( $self, $log, $key ) = @_;
+    my ( $self, $log, $key, $value ) = @_;
 
     # if $log->is_debug - done in caller
     if ( !$self->is_subcache ) {
         $log->debug(
             sprintf(
-                "cache set for namespace='%s', key='%s', driver='%s'",
-                $self->{namespace}, $key, $self->{short_driver_name}
+                "cache set for namespace='%s', key='%s', size=%d, driver='%s'",
+                $self->{namespace}, $key,
+                length($value),     $self->{short_driver_name}
             )
         );
     }
@@ -402,7 +435,7 @@ CHI::Driver -- Base class for all CHI drivers.
 This is the base class that all CHI drivers inherit from. It provides the methods
 that one calls on $cache handles, such as get() and set().
 
-See L<CHI|METHODS> for documentation on $cache methods, and L<CHI|IMPLEMENTING NEW DRIVERS>
+See L<CHI/METHODS> for documentation on $cache methods, and L<CHI::Driver::Development|CHI::Driver::Development>
 for documentation on creating new subclasses of CHI::Driver.
 
 =head1 AUTHOR
