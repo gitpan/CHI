@@ -1,25 +1,27 @@
 TO DO
 
-* Add test for make_immutable in all Moose classes
 * Create Cache::Bench from Rob's cacheperl; run full suite of benchmarks comparing CHI and non-CHI caches
-* Separate FastMmap and Memcached drivers into their own CPAN distributions
-* BerkeleyDB driver (w/separate file per namespace, must handle locking)
-* DBI driver (at least mysql)
-* Do auto-key-digesting for too-long keys - eliminates max key length - can work regardless of driver, but each driver can have its own default max key length, and will have to store key inside metadata in just this case
-* Offer several serialization options (Storable, YAML, YAML::Syck, Data::Dumper) w/o need to subclass
-* Add cache signature, encapsulating CHI's metadata version and options to the driver, as a second differentiator alongside namespace
+* Separate Memcached into its own CPAN distribution
+* Offer several serialization options via Data::Serializer
+* BerkeleyDB driver (w/separate file per namespace, must handle locking) (Perrin doing this?)
+* DBI driver (at least mysql) (Perrin doing this?)
 * Convert to Log::Any
 * expires_next => ['hour', 'day']
 * compare strategies for reducing miss stampedes in docs
-* Create faster get_object variant that does not support value - e.g. so file cache can read just metadata - then use this variant for get_expires_at, etc.
-* Handle unicode chars in escape_for_filename by utf8 encoding when needed (but how to know when unescaping...)
 * Test:
   * bad driver
   * default settings for $cache object: expires_at, expires_in
   * dir_create_mode and file_create_mode in File driver (test only under Unix)
+* null driver
+
+POSSIBLY
+
+* Do auto-key-digesting for too-long keys - eliminates max key length - can work regardless of driver, but each driver can have its own default max key length, and will have to store key inside metadata in just this case - is it worth it?
+* Add cache signature, encapsulating CHI's metadata version and options to the driver, as a second differentiator alongside namespace
+* Create faster get_object variant that does not support value - e.g. so file cache can read just metadata - then use this variant for get_expires_at, etc.
+* Handle unicode chars in escape_for_filename by utf8 encoding when needed (but how to know when unescaping...) - is it worth it? Did Cache::FileCache handle unicode keys?
 * support key escaping for any drivers that need it, e.g. memcached (via parameter, default on)
 * background compute
-* null driver
 * implement read-only and write-only caches (useful for multilevel caches)
 
 QUESTIONS

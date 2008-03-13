@@ -172,14 +172,12 @@ SUPPORT AND DOCUMENTATION
         http://code.google.com/p/perl-cache/wiki/Source
 
 TODO
-    *   Integrate CHI with Mason, and create CHI plugins for Catalyst and
-        CGI::Application
-
     *   Perform cache benchmarks comparing both CHI and non-CHI cache
         implementations
 
-    *   Separate FastMmap and Memcached drivers into their own CPAN
-        distributions
+    *   Separate Memcached driver into its own CPAN distributions
+
+    *   Make serialization method flexible via Data::Serializer
 
     *   Release BerkeleyDB and DBI drivers as separate CPAN distributions
 
