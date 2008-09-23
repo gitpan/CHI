@@ -1,30 +1,60 @@
 package CHI::Driver;
 use Carp;
 use CHI::CacheObject;
-use CHI::Util qw(parse_duration);
+use CHI::Util qw(parse_duration dp);
+use Data::Serializer;
 use List::MoreUtils qw(pairwise);
 use Moose;
 use Moose::Util::TypeConstraints;
+use Scalar::Util qw(blessed);
 use strict;
 use warnings;
 
-# Call this when updating default set options
-my @trigger_set_options =
-  ( trigger => sub { $_[0]->_compute_default_set_options() } );
-
 type OnError => where { ref($_) eq 'CODE' || /^(?:ignore|warn|die|log)/ };
 
-has 'default_set_options' => ( is => 'ro' );
-has 'expires_at'          => ( is => 'rw', @trigger_set_options );
-has 'expires_in'          => ( is => 'rw', @trigger_set_options );
-has 'expires_variance'    => ( is => 'rw', @trigger_set_options );
-has 'is_subcache'         => ( is => 'rw' );
-has 'namespace'           => ( is => 'ro', isa => 'Str', default => 'Default' );
-has 'on_get_error'        => ( is => 'rw', isa => 'OnError', default => 'log' );
-has 'on_set_error'        => ( is => 'rw', isa => 'OnError', default => 'log' );
-has 'short_driver_name'   => ( is => 'ro' );
+subtype Duration => as 'Int' => where { $_ > 0 };
+
+coerce 'Duration' => from 'Str' => via { parse_duration($_) };
+
+my $default_serializer = Data::Serializer->new( serializer => 'Storable' );
+
+# Force these methods to be autoloaded, else the can() won't work
+#
+$default_serializer->deserialize( $default_serializer->serialize( [] ) );
+subtype Serializer => as 'Object' => where {
+    $_ eq $default_serializer
+      || ( blessed($_) && $_->can('serialize') && $_->can('deserialize') );
+};
+
+use constant Max_Time => 0xffffffff;
+
+has 'expires_at'       => ( is => 'rw', default => Max_Time );
+has 'expires_in'       => ( is => 'rw', isa     => 'Duration', coerce => 1 );
+has 'expires_variance' => ( is => 'rw', default => 0.0 );
+has 'is_subcache'  => ( is => 'rw' );
+has 'namespace'    => ( is => 'ro', isa => 'Str', default => 'Default' );
+has 'on_get_error' => ( is => 'rw', isa => 'OnError', default => 'log' );
+has 'on_set_error' => ( is => 'rw', isa => 'OnError', default => 'log' );
+has 'serializer' =>
+  ( is => 'rw', isa => 'Serializer', default => sub { $default_serializer } );
+has 'short_driver_name' =>
+  ( is => 'ro', builder => '_build_short_driver_name' );
 
 __PACKAGE__->meta->make_immutable();
+
+# Given a hash of params, return the subset that are not in CHI's common parameters.
+#
+my %common_params =
+  map { ( $_, 1 ) } keys( %{ __PACKAGE__->meta->get_attribute_map } );
+
+sub non_common_constructor_params {
+    my ( $class, $params ) = @_;
+
+    return {
+        map { ( $_, $params->{$_} ) }
+          grep { !$common_params{$_} } keys(%$params)
+    };
+}
 
 # These methods must be implemented by subclass
 foreach my $method (qw(fetch store remove get_keys get_namespaces)) {
@@ -33,30 +63,25 @@ foreach my $method (qw(fetch store remove get_keys get_namespaces)) {
       sub { die "method '$method' must be implemented by subclass" }; ## no critic (RequireCarping)
 }
 
-use constant Max_Time => 0xffffffff;
+sub declare_unsupported_methods {
+    my ( $class, @methods ) = @_;
+
+    foreach my $method (@methods) {
+        no strict 'refs';
+        *{ $class . "::$method" } =
+          sub { croak "method '$method' not supported by '$class'" };
+    }
+}
 
 # To override time() for testing - must be writable in a dynamically scoped way from tests
 our $Test_Time;    ## no critic (ProhibitPackageVars)
 
-sub BUILD {
-    my ( $self, $params ) = @_;
-
-    $self->_compute_default_set_options();
-
-    ( $self->{short_driver_name} = ref($self) ) =~ s/^CHI::Driver:://;
-}
-
-sub _compute_default_set_options {
+sub _build_short_driver_name {
     my ($self) = @_;
 
-    $self->{default_set_options}->{expires_at} = $self->{expires_at}
-      || Max_Time;
-    $self->{default_set_options}->{expires_in} =
-      defined( $self->{expires_in} )
-      ? parse_duration( $self->{expires_in} )
-      : undef;
-    $self->{default_set_options}->{expires_variance} = $self->{expires_variance}
-      || 0.0;
+    ( my $name = ref($self) ) =~ s/^CHI::Driver:://;
+
+    return $name;
 }
 
 sub desc {
@@ -88,7 +113,8 @@ sub get {
           if $log->is_debug;
         return undef;
     }
-    my $obj = CHI::CacheObject->unpack_from_data( $key, $data );
+    my $obj =
+      CHI::CacheObject->unpack_from_data( $key, $data, $self->serializer );
 
     # Handle expire_if
     #
@@ -131,7 +157,8 @@ sub get_object {
     croak "must specify key" unless defined($key);
 
     my $data = $self->fetch($key) or return undef;
-    my $obj = CHI::CacheObject->unpack_from_data( $key, $data );
+    my $obj =
+      CHI::CacheObject->unpack_from_data( $key, $data, $self->serializer );
     return $obj;
 }
 
@@ -171,6 +198,13 @@ sub is_valid {
     }
 }
 
+sub _default_set_options {
+    my $self = shift;
+
+    return { map { $_ => $self->$_() }
+          qw( expires_at expires_in expires_variance ) };
+}
+
 sub set {
     my ( $self, $key, $value, $options ) = @_;
     croak "must specify key" unless defined($key);
@@ -179,7 +213,7 @@ sub set {
     # Fill in $options if not passed, copy if passed, and apply defaults.
     #
     if ( !defined($options) ) {
-        $options = $self->default_set_options;
+        $options = $self->_default_set_options;
     }
     else {
         if ( !ref($options) ) {
@@ -193,7 +227,7 @@ sub set {
                 $options = { expires_in => $options };
             }
         }
-        $options = { %{ $self->default_set_options }, %$options };
+        $options = { %{ $self->_default_set_options }, %$options };
     }
 
     # Determine early and final expiration times
@@ -214,7 +248,7 @@ sub set {
     #
     my $obj =
       CHI::CacheObject->new( $key, $value, $created_at, $early_expires_at,
-        $expires_at );
+        $expires_at, $self->serializer );
     eval { $self->_set_object( $key, $obj ) };
     if ( my $error = $@ ) {
         $self->_handle_error( $key, $error, 'setting', $self->on_set_error() );

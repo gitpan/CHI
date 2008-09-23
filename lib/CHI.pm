@@ -6,7 +6,7 @@ use CHI::Util qw(require_dynamic);
 use strict;
 use warnings;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 our $Logger = CHI::NullLogger->new();    ## no critic
 
@@ -30,7 +30,12 @@ sub new {
     }
     croak "missing required param 'driver' or 'driver_class'"
       unless defined $driver_class;
-    require_dynamic($driver_class);
+
+    # Load class if it hasn't been loaded or defined in-line already
+    #
+    unless ( $driver_class->can('fetch') ) {
+        require_dynamic($driver_class);
+    }
 
     return $driver_class->new(%params);
 }
@@ -109,6 +114,7 @@ Cache::Cache implementation.
 =head1 CONSTRUCTOR
 
 To create a new cache handle, call CHI-E<gt>new. It takes the following common options.
+All are optional, except that either I<driver> or I<driver_class> must be passed.
 
 =over
 
@@ -134,23 +140,33 @@ Suggestions for easy namespace selection:
 
 In a class, use the class name:
 
-    CHI->new(namespace => __PACKAGE__, ...);
+    my $cache = CHI->new(namespace => __PACKAGE__, ...);
 
 =item *
 
 In a script, use the script's absolute path name:
 
     use Cwd qw(realpath);
-    CHI->new(namespace => realpath($0), ...);
+    my $cache = CHI->new(namespace => realpath($0), ...);
 
 =item *
 
-In a web template, use the template name. For example, in Mason, $m-e<gt>cache will set
+In a web template, use the template name. For example, in Mason, $m-E<gt>cache will set
 the namespace to the current component path.
 
 =back
 
 Defaults to 'Default' if not specified.
+
+=item serializer [OBJECT]
+
+An object to use for serializing data before storing it in the cache, and deserializing
+data before retrieving it from the cache. Must be a L<Data::Serializer|Data::Serializer>
+object, or another object that implements I<serialize()> and I<deserialize()>. e.g.
+
+    my $cache = CHI->new(serializer => Data::Serializer->new(serializer => 'Data::Dumper', compress => 1);
+
+The default is to use plain Storable.
 
 =item expires_in [DURATION]
 
@@ -198,7 +214,7 @@ C<root_dir> and C<depth> options.
 
 =head1 INSTANCE METHODS
 
-The following methods can be called on any cache handle returned from CHI-E<gt>new(). They are implemented in the L<Cache::Driver|Cache::Driver> package.
+The following methods can be called on any cache handle returned from CHI-E<gt>new(). They are implemented in the L<CHI::Driver|CHI::Driver> package.
 
 =head2 Getting and setting
 
@@ -244,10 +260,9 @@ defaults in the cache constructor.
 
 =over
 
-=item expires_in [DURATION]
+=item expires_in [INT]
 
-Amount of time until this data expires, in the form of a L<duration expressions|/DURATION
-EXPRESSIONS> - e.g. "10 seconds" or "5 minutes".
+Amount of time (in seconds) until this data expires.
 
 =item expires_at [NUM]
 

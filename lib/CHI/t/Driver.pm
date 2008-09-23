@@ -5,9 +5,8 @@ use CHI::Test;
 use CHI::Test::Logger;
 use CHI::Test::Util qw(cmp_bool is_between random_string skip_until);
 use CHI::Util qw(dump_one_line dp);
+use Module::Load::Conditional qw(check_install);
 use base qw(CHI::Test::Class);
-
-my ( $cache, $cache_class, %keys, %values, @keynames, $key_count );
 
 # Flags indicating what each test driver supports
 sub supports_clear { 1 }
@@ -16,22 +15,23 @@ sub standard_keys_and_values : Test(startup) {
     my ($self) = @_;
 
     my ( $keys_ref, $values_ref ) = $self->set_standard_keys_and_values();
-    %keys      = %$keys_ref;
-    %values    = %$values_ref;
-    @keynames  = keys(%keys);
-    $key_count = scalar(@keynames);
+    $self->{keys}      = $keys_ref;
+    $self->{values}    = $values_ref;
+    $self->{keynames}  = [ keys( %{$keys_ref} ) ];
+    $self->{key_count} = scalar( @{ $self->{keynames} } );
 }
 
 sub kvpair {
-    return ( $keys{medium}, $values{medium} );
+    my $self = shift;
+
+    return ( $self->{keys}->{medium}, $self->{values}->{medium} );
 }
 
 sub setup : Test(setup) {
     my $self = shift;
 
-    $cache = $self->new_cache();
-    $cache->clear() if $self->supports_clear();
-    $cache_class = ref($cache);
+    $self->{cache} = $self->new_cache();
+    $self->{cache}->clear() if $self->supports_clear();
 }
 
 sub testing_driver_class {
@@ -61,8 +61,9 @@ sub new_cache_options {
 }
 
 sub set_standard_keys_and_values {
-    my ( %keys, %values );
+    my $self = shift;
 
+    my ( %keys, %values );
     my @mixed_chars = ( 32 .. 48, 57 .. 65, 90 .. 97, 122 .. 126 );
     %keys = (
         'space'    => ' ',
@@ -92,7 +93,8 @@ sub set_standard_keys_and_values {
         # expected behavior is
     );
 
-    %values = map { ( $_, scalar( reverse( $keys{$_} ) ) ) } keys(%keys);
+    %values =
+      map { ( $_, scalar( reverse( $keys{$_} ) ) ) } keys(%keys);
     $values{arrayref} = [ 1, 2 ];
     $values{hashref} = { foo => 'bar' };
 
@@ -102,21 +104,23 @@ sub set_standard_keys_and_values {
 sub set_some_keys {
     my ( $self, $c ) = @_;
 
-    foreach my $keyname (@keynames) {
-        $c->set( $keys{$keyname}, $values{$keyname} );
+    foreach my $keyname ( @{ $self->{keynames} } ) {
+        $c->set( $self->{keys}->{$keyname}, $self->{values}->{$keyname} );
     }
 }
 
 sub test_simple : Test(1) {
-    my $self = shift;
+    my $self  = shift;
+    my $cache = $self->{cache};
 
-    $cache->set( $keys{medium}, $values{medium} );
-    is( $cache->get( $keys{medium} ), $values{medium} );
+    $cache->set( $self->{keys}->{medium}, $self->{values}->{medium} );
+    is( $cache->get( $self->{keys}->{medium} ), $self->{values}->{medium} );
 }
 
 sub test_key_types : Tests {
-    my $self = shift;
-    $self->num_tests( $key_count * 6 + 1 );
+    my $self  = shift;
+    my $cache = $self->{cache};
+    $self->num_tests( $self->{key_count} * 6 + 1 );
 
     my @keys_set;
     my $check_keys_set = sub {
@@ -125,9 +129,9 @@ sub test_key_types : Tests {
     };
 
     $check_keys_set->("before sets");
-    foreach my $keyname (@keynames) {
-        my $key   = $keys{$keyname};
-        my $value = $values{$keyname};
+    foreach my $keyname ( @{ $self->{keynames} } ) {
+        my $key   = $self->{keys}->{$keyname};
+        my $value = $self->{values}->{$keyname};
         ok( !defined $cache->get($key), "miss for key '$keyname'" );
         is( $cache->set( $key, $value ), $value, "set for key '$keyname'" );
         push( @keys_set, $key );
@@ -135,8 +139,8 @@ sub test_key_types : Tests {
         cmp_deeply( $cache->get($key), $value, "hit for key '$keyname'" );
     }
 
-    foreach my $keyname ( reverse @keynames ) {
-        my $key = $keys{$keyname};
+    foreach my $keyname ( reverse @{ $self->{keynames} } ) {
+        my $key = $self->{keys}->{$keyname};
         $cache->remove($key);
         ok( !defined $cache->get($key),
             "miss after remove for key '$keyname'" );
@@ -146,12 +150,13 @@ sub test_key_types : Tests {
 }
 
 sub test_deep_copy : Test(8) {
-    my $self = shift;
+    my $self  = shift;
+    my $cache = $self->{cache};
 
     $self->set_some_keys($cache);
     foreach my $keyname qw(arrayref hashref) {
-        my $key   = $keys{$keyname};
-        my $value = $values{$keyname};
+        my $key   = $self->{keys}->{$keyname};
+        my $value = $self->{values}->{$keyname};
         cmp_deeply( $cache->get($key), $value,
             "get($key) returns original data structure" );
         cmp_deeply( $cache->get($key), $cache->get($key),
@@ -164,7 +169,8 @@ sub test_deep_copy : Test(8) {
 }
 
 sub test_expires_immediately : Test(32) {
-    my $self = shift;
+    my $self  = shift;
+    my $cache = $self->{cache};
 
     # Expires immediately
     my $test_expires_immediately = sub {
@@ -191,7 +197,8 @@ sub test_expires_immediately : Test(32) {
 }
 
 sub test_expires_shortly : Test(18) {
-    my $self = shift;
+    my $self  = shift;
+    my $cache = $self->{cache};
 
     # Expires shortly (real time)
     my $test_expires_shortly = sub {
@@ -224,7 +231,8 @@ sub test_expires_shortly : Test(18) {
 }
 
 sub test_expires_later : Test(30) {
-    my $self = shift;
+    my $self  = shift;
+    my $cache = $self->{cache};
 
     # Expires later (test time)
     my $test_expires_later = sub {
@@ -256,7 +264,8 @@ sub test_expires_later : Test(30) {
 }
 
 sub test_expires_never : Test(6) {
-    my $self = shift;
+    my $self  = shift;
+    my $cache = $self->{cache};
 
     # Expires never (will fail in 2037)
     my ( $key, $value ) = $self->kvpair();
@@ -301,7 +310,8 @@ sub test_expires_defaults : Test(4) {
 }
 
 sub test_expires_manually : Test(3) {
-    my $self = shift;
+    my $self  = shift;
+    my $cache = $self->{cache};
 
     my ( $key, $value ) = $self->kvpair();
     my $desc = "expires manually";
@@ -313,7 +323,8 @@ sub test_expires_manually : Test(3) {
 }
 
 sub test_expires_conditionally : Test(24) {
-    my $self = shift;
+    my $self  = shift;
+    my $cache = $self->{cache};
 
     # Expires conditionally
     my $test_expires_conditionally = sub {
@@ -363,7 +374,8 @@ sub test_expires_conditionally : Test(24) {
 }
 
 sub test_expires_variance : Test(9) {
-    my $self = shift;
+    my $self  = shift;
+    my $cache = $self->{cache};
 
     my $start_time = time();
     my $expires_at = $start_time + 10;
@@ -400,27 +412,89 @@ sub test_expires_variance : Test(9) {
 }
 
 sub test_not_in_cache : Test(3) {
+    my $self  = shift;
+    my $cache = $self->{cache};
+
     ok( !defined $cache->get_object('not in cache') );
     ok( !defined $cache->get_expires_at('not in cache') );
     ok( !$cache->is_valid('not in cache') );
 }
 
 sub test_serialize : Tests {
-    my $self = shift;
-    $self->num_tests($key_count);
+    my $self  = shift;
+    my $cache = $self->{cache};
+    $self->num_tests( $self->{key_count} );
 
     $self->set_some_keys($cache);
-    foreach my $keyname (@keynames) {
+    foreach my $keyname ( @{ $self->{keynames} } ) {
         my $expect_serialized =
           ( $keyname eq 'arrayref' || $keyname eq 'hashref' ) ? 1 : 0;
-        is( $cache->get_object( $keys{$keyname} )->_is_serialized(),
+        is(
+            $cache->get_object( $self->{keys}->{$keyname} )->_is_serialized(),
             $expect_serialized,
-            "is_serialized = $expect_serialized ($keyname)" );
+            "is_serialized = $expect_serialized ($keyname)"
+        );
     }
 }
 
+{
+
+    package DummySerializer;
+    sub serialize   { }
+    sub deserialize { }
+}
+
+sub test_serializers : Tests {
+    my ($self) = @_;
+
+    my $cache1 = $self->new_cache();
+    isa_ok( $cache1->serializer, 'Data::Serializer' );
+    is( $cache1->serializer->serializer, 'Storable' );
+    my $cache2 = $self->new_cache();
+    is( $cache1->serializer, $cache2->serializer,
+        'same serializer returned from two objects' );
+
+    throws_ok(
+        sub {
+            $self->new_cache( serializer => bless( {}, 'IceCream' ) );
+        },
+        qr/Validation failed for 'Serializer'/,
+        "invalid serializer"
+    );
+    lives_ok(
+        sub { $self->new_cache( serializer => bless( {}, 'DummySerializer' ) ) }
+        ,
+        "valid dummy serializer"
+    );
+
+    my @variants = (
+        { serializer => 'Storable' },
+        { serializer => 'Data::Dumper' },
+        { serializer => 'YAML' },
+    );
+    @variants = grep { check_install( module => $_->{serializer} ) } @variants;
+    ok( scalar(@variants), "some variants ok" );
+    foreach my $variant (@variants) {
+        my $serializer = Data::Serializer->new(%$variant);
+        my $cache = $self->new_cache( serializer => $serializer );
+        is(
+            $cache->serializer->serializer,
+            $variant->{serializer},
+            "serializer = " . $variant->{serializer}
+        );
+        $self->{cache} = $cache;
+        $self->test_key_types();
+    }
+
+    my $initial_count        = 6;
+    my $test_key_types_count = $self->{key_count} * 6 + 1;
+    $self->num_tests(
+        $initial_count + scalar(@variants) * ( 1 + $test_key_types_count ) );
+}
+
 sub test_namespaces : Test(6) {
-    my $self = shift;
+    my $self  = shift;
+    my $cache = $self->{cache};
 
     my $cache0 = $self->new_cache();
     is( $cache0->namespace, 'Default', 'namespace defaults to "Default"' );
@@ -439,17 +513,23 @@ sub test_namespaces : Test(6) {
         $cache1a->dump_as_hash(),
         'cache1 and cache1a are same cache'
     );
-    ok( !$cache2->get_keys(), 'cache2 empty after setting keys in cache1' );
-    $cache3->set( $keys{medium}, 'different' );
-    is( $cache1->get('medium'), $values{medium}, 'cache1{medium} = medium' );
-    is( $cache3->get('medium'), 'different',     'cache1{medium} = different' );
+    cmp_deeply( [ $cache2->get_keys() ],
+        [], 'cache2 empty after setting keys in cache1' );
+    $cache3->set( $self->{keys}->{medium}, 'different' );
+    is(
+        $cache1->get('medium'),
+        $self->{values}->{medium},
+        'cache1{medium} = medium'
+    );
+    is( $cache3->get('medium'), 'different', 'cache1{medium} = different' );
 
     # Have to figure out proper behavior of get_namespaces - whether it automatically includes new or now-empty namespaces
     # cmp_set([$cache1->get_namespaces()], [$cache->namespace(), $ns1, $ns2, $ns3], "get_namespaces");
 }
 
 sub test_persist : Test(1) {
-    my $self = shift;
+    my $self  = shift;
+    my $cache = $self->{cache};
 
     my $hash;
     {
@@ -463,11 +543,15 @@ sub test_persist : Test(1) {
 }
 
 sub test_multi : Test(8) {
-    my $self = shift;
+    my $self  = shift;
+    my $cache = $self->{cache};
 
-    my @ordered_keys       = map { $keys{$_} } @keynames;
-    my @ordered_values     = map { $values{$_} } @keynames;
-    my %ordered_key_values = map { ( $keys{$_}, $values{$_} ) } @keynames;
+    my @ordered_keys = map { $self->{keys}->{$_} } @{ $self->{keynames} };
+    my @ordered_values =
+      map { $self->{values}->{$_} } @{ $self->{keynames} };
+    my %ordered_key_values =
+      map { ( $self->{keys}->{$_}, $self->{values}->{$_} ) }
+      @{ $self->{keynames} };
 
     cmp_deeply( $cache->get_multi_arrayref( ['foo'] ),
         [undef], "get_multi_arrayref before set" );
@@ -495,7 +579,8 @@ sub test_multi : Test(8) {
 }
 
 sub test_multi_no_keys : Test(4) {
-    my $self = shift;
+    my $self  = shift;
+    my $cache = $self->{cache};
 
     cmp_deeply( $cache->get_multi_arrayref( [] ),
         [], "get_multi_arrayref (no args)" );
@@ -506,14 +591,15 @@ sub test_multi_no_keys : Test(4) {
 }
 
 sub test_clear : Tests {
-    my $self = shift;
-    $self->num_tests( $key_count + 1 );
+    my $self  = shift;
+    my $cache = $self->{cache};
+    $self->num_tests( $self->{key_count} + 1 );
 
     if ( $self->supports_clear() ) {
         $self->set_some_keys($cache);
         $cache->clear();
         cmp_deeply( [ $cache->get_keys ], [], "get_keys after clear" );
-        while ( my ( $keyname, $key ) = each(%keys) ) {
+        while ( my ( $keyname, $key ) = each( %{ $self->{keys} } ) ) {
             ok( !defined $cache->get($key),
                 "key '$keyname' no longer defined after clear" );
         }
@@ -529,7 +615,8 @@ sub test_clear : Tests {
 }
 
 sub test_logging : Test(6) {
-    my $self = shift;
+    my $self  = shift;
+    my $cache = $self->{cache};
 
     my $log = CHI::Test::Logger->new();
     CHI->logger($log);
@@ -565,7 +652,8 @@ sub test_logging : Test(6) {
 }
 
 sub test_cache_object : Test(6) {
-    my $self = shift;
+    my $self  = shift;
+    my $cache = $self->{cache};
     my ( $key, $value ) = $self->kvpair();
     my $start_time = time();
     $cache->set( $key, $value, { expires_at => $start_time + 10 } );
@@ -591,7 +679,8 @@ sub test_cache_object : Test(6) {
 }
 
 sub test_busy_lock : Test(5) {
-    my $self = shift;
+    my $self  = shift;
+    my $cache = $self->{cache};
 
     my ( $key, $value ) = $self->kvpair();
     my @bl = ( busy_lock => '30 sec' );
@@ -623,12 +712,12 @@ sub test_multiple_procs : Test(1) {
     # Having problems getting this to work at all on OS X Leopard;
     # skip for a while
     skip_until(
-        '3/15/08',
+        '12/15/08',
         1,
         sub {
 
             my ( @values, @pids, %valid_values );
-            my $shared_key = $keys{medium};
+            my $shared_key = $self->{keys}->{medium};
 
             local $SIG{CHLD} = 'IGNORE';
 
@@ -698,6 +787,8 @@ sub test_multiple_procs : Test(1) {
 }
 
 sub test_missing_params : Tests(13) {
+    my $self  = shift;
+    my $cache = $self->{cache};
 
     # These methods require a key
     foreach my $method (

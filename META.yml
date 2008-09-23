@@ -1,7 +1,7 @@
 --- 
 abstract: Unified cache interface
 author: 
-  - Jonathan Swartz
+  - Jonathan Swartz <swartz@pobox.com>
 build_requires: 
   Date::Parse: 0
   Test::Class: 0
@@ -19,6 +19,7 @@ no_index:
     - inc
     - t
 requires: 
+  Data::Serializer: 0.43
   Data::UUID: 0
   Digest::JHash: 0
   File::Slurp: 0
@@ -27,8 +28,9 @@ requires:
   List::MoreUtils: 0.13
   Module::Find: 0.05
   Module::Load::Conditional: 0
-  Moose: 0.33
+  Moose: 0.54
+  MooseX::AttributeHelpers: 0.08
   Storable: 0
   Time::Duration::Parse: 0.03
   perl: 5.6.0
-version: 0.07
+version: 0.08

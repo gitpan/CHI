@@ -18,8 +18,16 @@ extends 'CHI::Driver';
 has 'depth'            => ( is => 'ro', isa => 'Int', default => 2 );
 has 'dir_create_mode'  => ( is => 'ro', isa => 'Int', default => oct(775) );
 has 'file_create_mode' => ( is => 'ro', isa => 'Int', default => oct(666) );
-has 'root_dir'         => ( is => 'ro', isa => 'Str' );
-has 'path_to_namespace' => ( is => 'ro' );
+has 'root_dir'         => (
+    is      => 'ro',
+    isa     => 'Str',
+    default => catdir( tmpdir(), 'chi-driver-file' ),
+);
+has 'path_to_namespace' => (
+    is      => 'ro',
+    lazy    => 1,
+    builder => '_build_path_to_namespace',
+);
 
 __PACKAGE__->meta->make_immutable();
 
@@ -32,14 +40,16 @@ sub BUILD {
     my ( $self, $params ) = @_;
 
     # Allow 'cache_root' for backward compatibility with Cache::Filecache
-    $self->{root_dir} ||=
-      ( delete( $self->{cache_root} )
-          || catdir( tmpdir(), "chi-driver-file" ) );
+    if ( my $root = delete $self->{cache_root} ) {
+        $self->set_root_dir($root);
+    }
+}
 
-    # Calculate directory corresponding to our namespace
-    $self->{path_to_namespace} =
-      catdir( $self->root_dir,
-        $self->escape_for_filename( $self->{namespace} ) );
+sub _build_path_to_namespace {
+    my $self = shift;
+
+    return catdir( $self->root_dir,
+        $self->escape_for_filename( $self->namespace ) );
 }
 
 sub desc {
@@ -85,10 +95,8 @@ sub store {
 
     mkpath( $dir, 0, $self->{dir_create_mode} ) if !-d $dir;
 
-    # Generate a temporary filename using unique_id - faster than tempfile, as long as
-    # we don't need automatic removal
-    #
-    my $temp_file = fast_catfile( $dir, unique_id() );
+    my $temp_file = $self->generate_temporary_filename( $dir, $file );
+    my $store_file = defined($temp_file) ? $temp_file : $file;
 
     # Fast spew, adapted from File::Slurp::write, with unnecessary options removed
     #
@@ -96,35 +104,38 @@ sub store {
         my $write_fh;
         unless (
             sysopen(
-                $write_fh,    $temp_file,
+                $write_fh,    $store_file,
                 $Store_Flags, $self->{file_create_mode}
             )
           )
         {
-            croak "write_file '$temp_file' - sysopen: $!";
+            croak "write_file '$store_file' - sysopen: $!";
         }
         my $size_left = length($data);
         my $offset    = 0;
         do {
             my $write_cnt = syswrite( $write_fh, $data, $size_left, $offset );
             unless ( defined $write_cnt ) {
-                croak "write_file '$temp_file' - syswrite: $!";
+                croak "write_file '$store_file' - syswrite: $!";
             }
             $size_left -= $write_cnt;
             $offset += $write_cnt;
         } while ( $size_left > 0 );
     }
 
-    # Rename can fail in rare race conditions...try multiple times
-    #
-    for ( my $try = 0 ; $try < 3 ; $try++ ) {
-        last if ( rename( $temp_file, $file ) );
-    }
-    if ( -f $temp_file ) {
-        my $error = $!;
-        unlink($temp_file);
-        ## no critic (RequireCarping)
-        die "could not rename '$temp_file' to '$file': $error";
+    if ( defined($temp_file) ) {
+
+        # Rename can fail in rare race conditions...try multiple times
+        #
+        for ( my $try = 0 ; $try < 3 ; $try++ ) {
+            last if ( rename( $temp_file, $file ) );
+        }
+        if ( -f $temp_file ) {
+            my $error = $!;
+            unlink($temp_file);
+            ## no critic (RequireCarping)
+            die "could not rename '$temp_file' to '$file': $error";
+        }
     }
 }
 
@@ -140,7 +151,7 @@ sub remove {
 sub clear {
     my ($self) = @_;
 
-    my $namespace_dir = $self->{path_to_namespace};
+    my $namespace_dir = $self->path_to_namespace;
     rmtree($namespace_dir);
     ## no critic (RequireCarping)
     die "could not remove '$namespace_dir'"
@@ -158,7 +169,7 @@ sub get_keys {
 sub _collect_keys_via_file_find {
     my ( $self, $filepaths, $wanted ) = @_;
 
-    my $namespace_dir = $self->{path_to_namespace};
+    my $namespace_dir = $self->path_to_namespace;
     return () if !-d $namespace_dir;
 
     find( { wanted => $wanted, no_chdir => 1 }, $namespace_dir );
@@ -171,6 +182,15 @@ sub _collect_keys_via_file_find {
         push( @keys, $key );
     }
     return @keys;
+}
+
+sub generate_temporary_filename {
+    my ( $self, $dir, $file ) = @_;
+
+    # Generate a temporary filename using unique_id - faster than tempfile, as long as
+    # we don't need automatic removal
+    #
+    return fast_catfile( $dir, unique_id() );
 }
 
 sub get_namespaces {
@@ -188,7 +208,7 @@ my %hex_strings = map { ( $_, sprintf( "%x", $_ ) ) } ( 0x0 .. 0xf );
 sub path_to_key {
     my ( $self, $key, $dir_ref ) = @_;
 
-    my @paths = ( $self->{path_to_namespace} );
+    my @paths = ( $self->path_to_namespace );
 
     # Hash key to a 32-bit integer
     #
@@ -259,10 +279,11 @@ CHI::Driver::File -- File-based cache using one file per entry in a multi-level 
 This cache driver stores data on the filesystem, so that it can be shared between
 processes on a single machine, or even on multiple machines if using NFS.
 
-Each item is stored in its own file. During a set, a temporary file is created and then
-atomically renamed to the proper file. While not the most efficient, it eliminates the
-need for locking (with multiple overlapping sets, the last one "wins") and makes this
-cache usable in environments like NFS where locking might normally be undesirable.
+Each item is stored in its own file. By default, during a set, a temporary file is created
+and then atomically renamed to the proper file. While not the most efficient, it
+eliminates the need for locking (with multiple overlapping sets, the last one "wins") and
+makes this cache usable in environments like NFS where locking might normally be
+undesirable.
 
 The base filename is the key itself, with unsafe characters replaced with an escape
 sequence similar to URI escaping. The filename length is capped at 255 characters, which
@@ -321,6 +342,13 @@ Returns the full path to the directory representing this cache's namespace, whet
 it has any entries.
 
 =back
+
+=head1 TEMPORARY FILE RENAME
+
+By default, during a set, a temporary file is created and then atomically renamed to the
+proper file.  This eliminates the need for locking. You can subclass and override method
+I<generate_temporary_filename> to either change the path of the temporary filename, or
+skip the temporary file and rename altogether by having it return undef.
 
 =head1 SEE ALSO
 

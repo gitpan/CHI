@@ -1,8 +1,13 @@
 TO DO
 
+* Migrate to git (better for working on planes :))
+  * Recreate git just from trunk (no branches/tags)
+. Allow suppression of renames when creating new item
+. Separate Memcached into its own CPAN distribution
+  * Release
+. Offer several serialization options via Data::Serializer - in 0.08
 * Create Cache::Bench from Rob's cacheperl; run full suite of benchmarks comparing CHI and non-CHI caches
-* Separate Memcached into its own CPAN distribution
-* Offer several serialization options via Data::Serializer
+* Fix Mason $m->cache() to memoize cache object, at least with no arguments - taking care to react to changes in default_cache_options
 * BerkeleyDB driver (w/separate file per namespace, must handle locking) (Perrin doing this?)
 * DBI driver (at least mysql) (Perrin doing this?)
 * Convert to Log::Any
