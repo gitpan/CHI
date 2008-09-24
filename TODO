@@ -4,7 +4,7 @@ TO DO
   * Recreate git just from trunk (no branches/tags)
 . Allow suppression of renames when creating new item
 . Separate Memcached into its own CPAN distribution
-  * Release
+  . Release
 . Offer several serialization options via Data::Serializer - in 0.08
 * Create Cache::Bench from Rob's cacheperl; run full suite of benchmarks comparing CHI and non-CHI caches
 * Fix Mason $m->cache() to memoize cache object, at least with no arguments - taking care to react to changes in default_cache_options
@@ -17,7 +17,7 @@ TO DO
   * bad driver
   * default settings for $cache object: expires_at, expires_in
   * dir_create_mode and file_create_mode in File driver (test only under Unix)
-* null driver
+* Null driver
 
 POSSIBLY
 
