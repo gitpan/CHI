@@ -204,14 +204,14 @@ sub test_expires_shortly : Test(18) {
     my $test_expires_shortly = sub {
         my ($set_option) = @_;
         my ( $key, $value ) = $self->kvpair();
-        my $desc = "set_option = " . dump_one_line($set_option);
+        my $desc       = "set_option = " . dump_one_line($set_option);
+        my $start_time = time();
         is( $cache->set( $key, $value, $set_option ), $value, "set ($desc)" );
         is( $cache->get($key), $value, "hit ($desc)" );
-        my $start_time = time();
         is_between(
             $cache->get_expires_at($key),
             $start_time + 1,
-            $start_time + 3,
+            $start_time + 5,
             "expires_at ($desc)"
         );
         ok( !$cache->exists_and_is_expired($key), "not expired ($desc)" );
@@ -492,7 +492,7 @@ sub test_serializers : Tests {
         $initial_count + scalar(@variants) * ( 1 + $test_key_types_count ) );
 }
 
-sub test_namespaces : Test(6) {
+sub test_namespaces : Test(12) {
     my $self  = shift;
     my $cache = $self->{cache};
 
@@ -523,8 +523,20 @@ sub test_namespaces : Test(6) {
     );
     is( $cache3->get('medium'), 'different', 'cache1{medium} = different' );
 
-    # Have to figure out proper behavior of get_namespaces - whether it automatically includes new or now-empty namespaces
-    # cmp_set([$cache1->get_namespaces()], [$cache->namespace(), $ns1, $ns2, $ns3], "get_namespaces");
+    # get_namespaces may or may not automatically include empty namespaces
+    cmp_deeply(
+        [ $cache1->get_namespaces() ],
+        supersetof( $ns1, $ns3 ),
+        "get_namespaces contains $ns1 and $ns3"
+    );
+
+    foreach my $c ( $cache0, $cache1, $cache1a, $cache2, $cache3 ) {
+        cmp_deeply(
+            [ $cache->get_namespaces() ],
+            [ $c->get_namespaces() ],
+            'get_namespaces the same regardless of which cache asks'
+        );
+    }
 }
 
 sub test_persist : Test(1) {
@@ -593,12 +605,13 @@ sub test_multi_no_keys : Test(4) {
 sub test_clear : Tests {
     my $self  = shift;
     my $cache = $self->{cache};
-    $self->num_tests( $self->{key_count} + 1 );
+    $self->num_tests( $self->{key_count} + 2 );
 
     if ( $self->supports_clear() ) {
         $self->set_some_keys($cache);
         $cache->clear();
         cmp_deeply( [ $cache->get_keys ], [], "get_keys after clear" );
+        is( scalar( $cache->get_keys ), 0, "scalar(get_keys) = 0 after clear" );
         while ( my ( $keyname, $key ) = each( %{ $self->{keys} } ) ) {
             ok( !defined $cache->get($key),
                 "key '$keyname' no longer defined after clear" );
@@ -634,13 +647,14 @@ sub test_logging : Test(6) {
     $cache->get($key);
     $log->contains_ok(
         qr/cache get for .* key='$key', driver='$driver': $miss_not_in_cache/);
-    $cache->set( $key, $value, 20 );
+    $cache->set( $key, $value, 80 );
     my $length = length($value);
     $log->contains_ok(
-        qr/cache set for .* key='$key', size=$length, driver='$driver'/);
+        qr/cache set for .* key='$key', size=$length, expires='1m20s', driver='$driver'/
+    );
     $cache->get($key);
     $log->contains_ok(qr/cache get for .* key='$key', driver='$driver': HIT/);
-    local $CHI::Driver::Test_Time = $start_time + 40;
+    local $CHI::Driver::Test_Time = $start_time + 120;
     $cache->get($key);
     $log->contains_ok(
         qr/cache get for .* key='$key', driver='$driver': $miss_expired/);
@@ -712,7 +726,7 @@ sub test_multiple_procs : Test(1) {
     # Having problems getting this to work at all on OS X Leopard;
     # skip for a while
     skip_until(
-        '12/15/08',
+        '3/15/09',
         1,
         sub {
 

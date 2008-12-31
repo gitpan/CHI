@@ -61,10 +61,8 @@ DESCRIPTION
 
 AVAILABILITY OF DRIVERS
     The following drivers are currently available as part of this
-    distribution. The bundling within a single distribution is a temporary
-    convenience during the initial phase of (possibly) rapid changes. Once
-    things have stabilized a bit, all the drivers except for Memory, File,
-    and Multilevel will be moved out to their own CPAN distributions.
+    distribution. Other drivers can be found on CPAN by searching for
+    "CHI::Driver".
 
     *   CHI::Driver::Memory - In-process memory based cache
 
@@ -74,8 +72,7 @@ AVAILABILITY OF DRIVERS
     *   CHI::Driver::FastMmap - Shared memory interprocess cache via mmap'ed
         files
 
-    *   CHI::Driver::Memcached - Distributed cache via memcached (memory
-        cache daemon)
+    *   CHI::Driver::FastMmap - Dummy cache in which nothing is stored
 
     *   CHI::Driver::Multilevel - Cache formed from several subcaches
         chained together
@@ -174,10 +171,6 @@ SUPPORT AND DOCUMENTATION
 TODO
     *   Perform cache benchmarks comparing both CHI and non-CHI cache
         implementations
-
-    *   Separate Memcached driver into its own CPAN distributions
-
-    *   Make serialization method flexible via Data::Serializer
 
     *   Release BerkeleyDB and DBI drivers as separate CPAN distributions
 

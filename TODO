@@ -1,16 +1,16 @@
 TO DO
 
-* Migrate to git (better for working on planes :))
-  * Recreate git just from trunk (no branches/tags)
-. Allow suppression of renames when creating new item
-. Separate Memcached into its own CPAN distribution
-  . Release
-. Offer several serialization options via Data::Serializer - in 0.08
+* Release new CHI based on git ASAP
 * Create Cache::Bench from Rob's cacheperl; run full suite of benchmarks comparing CHI and non-CHI caches
+* Allow FastMmap, BerkeleyDB, etc. drivers to easily work with either one file or a directory
+  namespace_mode => ['native' - normal, 'fold' - fold into key, 'ignore' - don't use namespaces at all, error to specify]
+  OR - when FastMmap and BerkeleyDB are given a file, automatically fold into key (or don't use namespace if 'Default'? but then we have to be very concerned about separator)
+* Fix memcached namespace - right now passes directly, which will prefix namespace without any intervening characters
 * Fix Mason $m->cache() to memoize cache object, at least with no arguments - taking care to react to changes in default_cache_options
-* BerkeleyDB driver (w/separate file per namespace, must handle locking) (Perrin doing this?)
-* DBI driver (at least mysql) (Perrin doing this?)
+* BerkeleyDB driver (w/separate file per namespace, must handle locking)
+* DBI driver (at least mysql)
 * Convert to Log::Any
+* expire_if_files_changed(...) - returns an appropriate expires_if pair - CHIx::ExpireByFile or similar
 * expires_next => ['hour', 'day']
 * compare strategies for reducing miss stampedes in docs
 * Test:

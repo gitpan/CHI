@@ -1,5 +1,4 @@
 Changes
-cp.yml
 inc/Module/AutoInstall.pm
 inc/Module/Install.pm
 inc/Module/Install/AutoInstall.pm
@@ -20,15 +19,18 @@ lib/CHI/Driver/FastMmap.pm
 lib/CHI/Driver/File.pm
 lib/CHI/Driver/Memory.pm
 lib/CHI/Driver/Multilevel.pm
+lib/CHI/Driver/Null.pm
 lib/CHI/Driver/Role/CacheContainer.pm
 lib/CHI/NullLogger.pm
 lib/CHI/t/Driver.pm
 lib/CHI/t/Driver/CacheCache.pm
 lib/CHI/t/Driver/FastMmap.pm
 lib/CHI/t/Driver/File.pm
+lib/CHI/t/Driver/File/DepthZero.pm
 lib/CHI/t/Driver/Memory.pm
 lib/CHI/t/Driver/Multilevel.pm
 lib/CHI/t/Driver/Multilevel/Single.pm
+lib/CHI/t/Driver/Null.pm
 lib/CHI/t/GetError.pm
 lib/CHI/t/Initialize.pm
 lib/CHI/t/RequiredModules.pm
@@ -54,10 +56,12 @@ t/01-tidy.t
 t/02-critic.t
 t/Driver-CacheCache.t
 t/Driver-FastMmap.t
+t/Driver-File-DepthZero.t
 t/Driver-File.t
 t/Driver-Memory.t
 t/Driver-Multilevel-Single.t
 t/Driver-Multilevel.t
+t/Driver-Null.t
 t/GetError.t
 t/Initialize.t
 t/pod.t

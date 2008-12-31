@@ -6,7 +6,7 @@ use CHI::Util qw(require_dynamic);
 use strict;
 use warnings;
 
-our $VERSION = '0.081';
+our $VERSION = '0.09';
 
 our $Logger = CHI::NullLogger->new();    ## no critic
 
@@ -410,6 +410,10 @@ are implemented with the obvious map operations, but some cache drivers
 Get the keys in list reference I<$keys>, and return a list reference of the same length
 with corresponding values or undefs.
 
+=item get_multi_array( $keys )
+
+Like L</get_multi_arrayref>, but returns an array instead of an array reference.
+
 =item get_multi_hashref( $keys )
 
 Like L</get_multi_arrayref>, but returns a hash reference with each key in I<$keys> mapping to
@@ -432,8 +436,8 @@ Returns a hash reference containing all the non-expired keys and values in the c
 
 =head2 Property accessors
 
-There is a read-only accessor for C<namespace>, and read/write accessors for C<expires_in>, C<expires_at>, C<expires_variance>,
-C<on_get_error>, and C<on_set_error>.
+There is a read-only accessor for C<namespace>, and read/write accessors for
+C<expires_in>, C<expires_at>, C<expires_variance>, C<on_get_error>, and C<on_set_error>.
 
 =head1 DURATION EXPRESSIONS
 
@@ -462,10 +466,8 @@ e.g. the following are all valid duration expressions:
 
 =head1 AVAILABILITY OF DRIVERS
 
-The following drivers are currently available as part of this distribution. The bundling
-within a single distribution is a temporary convenience during the initial phase of
-(possibly) rapid changes. Once things have stabilized a bit, all the drivers except for
-Memory, File, and Multilevel will be moved out to their own CPAN distributions.
+The following drivers are currently available as part of this distribution. Other drivers
+can be found on CPAN by searching for "CHI::Driver".
 
 =over
 
@@ -483,7 +485,7 @@ L<CHI::Driver::FastMmap|CHI::Driver::FastMmap> - Shared memory interprocess cach
 
 =item *
 
-L<CHI::Driver::Memcached|CHI::Driver::Memcached> - Distributed cache via memcached (memory cache daemon)
+L<CHI::Driver::FastMmap|CHI::Driver::Null> - Dummy cache in which nothing is stored
 
 =item *
 
@@ -624,14 +626,6 @@ The latest source code is available at:
 =item *
 
 Perform cache benchmarks comparing both CHI and non-CHI cache implementations
-
-=item *
-
-Separate Memcached driver into its own CPAN distributions
-
-=item *
-
-Make serialization method flexible via Data::Serializer
 
 =item *
 
