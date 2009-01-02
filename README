@@ -164,9 +164,10 @@ SUPPORT AND DOCUMENTATION
 
         http://rt.cpan.org/NoAuth/Bugs.html?Dist=CHI
 
-    The latest source code is available at:
+    The latest source code can be browsed and fetched at:
 
-        http://code.google.com/p/perl-cache/wiki/Source
+        http://github.com/jonswar/perl-chi/tree/master
+        git clone git://github.com/jonswar/perl-chi.git
 
 TODO
     *   Perform cache benchmarks comparing both CHI and non-CHI cache

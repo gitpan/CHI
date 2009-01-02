@@ -1,6 +1,9 @@
 TO DO
 
-* Release new CHI based on git ASAP
+* Fix problem w/fastmmap caching and critic test!
+* Allow serializer to take a string, which is then simply passed to Data::Serializer->new(serializer => ...)
+* Release new Cache::Cache mentioning CHI
+* Add item limit to memory cache - FIFO or LRU - see how Cache::Cache does it
 * Create Cache::Bench from Rob's cacheperl; run full suite of benchmarks comparing CHI and non-CHI caches
 * Allow FastMmap, BerkeleyDB, etc. drivers to easily work with either one file or a directory
   namespace_mode => ['native' - normal, 'fold' - fold into key, 'ignore' - don't use namespaces at all, error to specify]
@@ -17,7 +20,6 @@ TO DO
   * bad driver
   * default settings for $cache object: expires_at, expires_in
   * dir_create_mode and file_create_mode in File driver (test only under Unix)
-* Null driver
 
 POSSIBLY
 
