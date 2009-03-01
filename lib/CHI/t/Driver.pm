@@ -5,7 +5,7 @@ use CHI::Test;
 use CHI::Test::Logger;
 use CHI::Test::Util qw(cmp_bool is_between random_string skip_until);
 use CHI::Util qw(dump_one_line dp);
-use Module::Load::Conditional qw(check_install);
+use Module::Load::Conditional qw(can_load check_install);
 use base qw(CHI::Test::Class);
 
 # Flags indicating what each test driver supports
@@ -349,7 +349,7 @@ sub test_expires_conditionally : Test(24) {
                     "get result ($desc)"
                 );
             }
-            if ($expect_expire) {
+            if ( $expect_expire && $separate_call ) {
                 ok( !defined $cache->get($key),
                     "miss after expire_if ($desc)" );
                 ok( !$cache->is_valid($key),
@@ -447,17 +447,29 @@ sub test_serialize : Tests {
 sub test_serializers : Tests {
     my ($self) = @_;
 
+    return 'Data::Serializer not installed'
+      unless can_load( modules => { 'Data::Serializer' => undef } );
+    require Data::Serializer;
+
+    my @modes    = (qw(string hash object));
+    my @variants = (qw(Storable Data::Dumper YAML));
+    @variants = grep { check_install( module => $_ ) } @variants;
+    ok( scalar(@variants), "some variants ok" );
+
+    my $initial_count        = 5;
+    my $test_key_types_count = $self->{key_count} * 6 + 1;
+    my $test_count           = $initial_count +
+      scalar(@variants) * scalar(@modes) * ( 1 + $test_key_types_count );
+
     my $cache1 = $self->new_cache();
-    isa_ok( $cache1->serializer, 'Data::Serializer' );
-    is( $cache1->serializer->serializer,
-        'Storable', 'default serializer is storable' );
+    isa_ok( $cache1->serializer, 'CHI::Serializer::Storable' );
     my $cache2 = $self->new_cache();
     is( $cache1->serializer, $cache2->serializer,
         'same serializer returned from two objects' );
 
     throws_ok(
         sub {
-            $self->new_cache( serializer => bless( {}, 'IceCream' ) );
+            $self->new_cache( serializer => [1] );
         },
         qr/Validation failed for 'Serializer'/,
         "invalid serializer"
@@ -468,28 +480,21 @@ sub test_serializers : Tests {
         "valid dummy serializer"
     );
 
-    my @variants = (qw(Storable Data::Dumper YAML));
-    @variants = grep { check_install( module => $_ ) } @variants;
-    ok( scalar(@variants), "some variants ok" );
-    foreach my $mode (qw(string object)) {
+    foreach my $mode (@modes) {
         foreach my $variant (@variants) {
             my $serializer_param = (
-                  $mode eq 'string'
-                ? $variant
+                  $mode eq 'string' ? $variant
+                : $mode eq 'hash' ? { serializer => $variant }
                 : Data::Serializer->new( serializer => $variant )
             );
             my $cache = $self->new_cache( serializer => $serializer_param );
             is( $cache->serializer->serializer,
-                $variant, "serializer = " . $variant );
+                $variant, "serializer = $variant, mode = $mode" );
             $self->{cache} = $cache;
             $self->test_key_types();
+            $self->num_tests($test_count);
         }
     }
-
-    my $initial_count        = 6;
-    my $test_key_types_count = $self->{key_count} * 6 + 1;
-    $self->num_tests( $initial_count +
-          scalar(@variants) * 2 * ( 1 + $test_key_types_count ) );
 }
 
 sub test_namespaces : Test(12) {
@@ -627,7 +632,7 @@ sub test_clear : Tests {
     }
 }
 
-sub test_logging : Test(6) {
+sub test_logging : Test(8) {
     my $self  = shift;
     my $cache = $self->{cache};
 
@@ -719,85 +724,39 @@ sub test_busy_lock : Test(5) {
     is( $cache->get( $key, @bl ), $value, "hit after busy lock" );
 }
 
-sub test_multiple_procs : Test(1) {
-    my $self = shift;
-    return "internal test only" unless $self->is_internal();
+sub test_obj_ref : Tests(8) {
+    my $self  = shift;
+    my $cache = $self->{cache};
+    my $obj;
+    my ( $key, $value ) = ( 'medium', [ a => 5, b => 6 ] );
 
-    # Having problems getting this to work at all on OS X Leopard;
-    # skip for a while
-    skip_until(
-        '3/15/09',
-        1,
-        sub {
+    my $validate_obj = sub {
+        my $obj = shift;
+        isa_ok( $obj, 'CHI::CacheObject' );
+        is( $obj->key, $key, "keys match" );
+        cmp_deeply( $obj->value, $value, "values match" );
+    };
 
-            my ( @values, @pids, %valid_values );
-            my $shared_key = $self->{keys}->{medium};
+    $cache->get( $key, obj_ref => \$obj );
+    ok( !defined($obj), "obj not defined on miss" );
+    $cache->set( $key, $value, { obj_ref => \$obj } );
+    $validate_obj->($obj);
+    undef $obj;
+    ok( !defined($obj), "obj not defined before get" );
+    $cache->get( $key, obj_ref => \$obj );
+    $validate_obj->($obj);
+}
 
-            local $SIG{CHLD} = 'IGNORE';
+## no critic
+{ package My::CHI; use Mouse; extends 'CHI' }
 
-            my $child_action = sub {
-                my $p           = shift;
-                my $value       = $values[$p];
-                my $child_cache = $self->new_cache();
+sub test_driver_properties : Tests(2) {
+    my $self  = shift;
+    my $cache = $self->{cache};
 
-                # Let parent catch up
-                sleep(1);
-                for ( my $i = 0 ; $i < 100 ; $i++ ) {
-                    $child_cache->set( $shared_key, $value );
-                }
-                $child_cache->set( "done$p", 1 );
-            };
-
-            foreach my $p ( 0 .. 1 ) {
-                $values[$p] = random_string(5000);
-                $valid_values{ $values[$p] }++;
-                if ( my $pid = fork() ) {
-                    $pids[$p] = $pid;
-                }
-                else {
-                    $child_action->($p);
-                    exit;
-                }
-            }
-
-            my ( $seen_value, $error );
-            my $end_time     = time() + 5;
-            my $parent_cache = $self->new_cache();
-            while (1) {
-                for ( my $i = 0 ; $i < 100 ; $i++ ) {
-                    my $value = $parent_cache->get($shared_key);
-                    if ( defined($value) ) {
-                        if ( $valid_values{$value} ) {
-                            $seen_value = 1;
-                        }
-                        else {
-                            $error =
-                              "got invalid value '$value' from shared key";
-                            last;
-                        }
-                    }
-                }
-                if ( !grep { !$parent_cache->get("done$_") } ( 0 .. 2 ) ) {
-                    last;
-                }
-                if ( time() >= $end_time ) {
-                    $error = "did not see all done flags after 10 secs";
-                    last;
-                }
-            }
-
-            if ( !$error && !$seen_value ) {
-                $error = "never saw defined value for shared key";
-            }
-
-            if ($error) {
-                ok( 0, $error );
-            }
-            else {
-                ok( 1, "passed" );
-            }
-        }
-    );
+    is( $cache->chi_root_class, 'CHI', 'chi_root_class=CHI' );
+    my $cache2 = My::CHI->new( $self->new_cache_options() );
+    is( $cache2->chi_root_class, 'My::CHI', 'chi_root_class=My::CHI' );
 }
 
 sub test_missing_params : Tests(13) {

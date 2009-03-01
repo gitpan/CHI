@@ -1,11 +1,11 @@
 package CHI::Driver;
 use Carp;
 use CHI::CacheObject;
+use CHI::Serializer::Storable;
 use CHI::Util qw(parse_duration dp);
-use Data::Serializer;
 use List::MoreUtils qw(pairwise);
-use Moose;
-use Moose::Util::TypeConstraints;
+use Mouse;
+use Mouse::Util::TypeConstraints;
 use Scalar::Util qw(blessed);
 use Time::Duration;
 use strict;
@@ -17,28 +17,31 @@ subtype Duration => as 'Int' => where { $_ > 0 };
 
 coerce 'Duration' => from 'Str' => via { parse_duration($_) };
 
-my $default_serializer = Data::Serializer->new( serializer => 'Storable' );
+use Data::Serializer;
+
+my $default_serializer = Data::Serializer->new();
+
+$default_serializer = CHI::Serializer::Storable->new();
 
 # Force these methods to be autoloaded, else the can() won't work
 #
 $default_serializer->deserialize( $default_serializer->serialize( [] ) );
-subtype Serializer => as 'Object' => where {
-    $_ eq $default_serializer
-      || ( blessed($_) && $_->can('serialize') && $_->can('deserialize') );
-};
+subtype Serializer  => as 'Object';
+coerce 'Serializer' => from 'HashRef' => via { Data::Serializer->new(%$_) };
 coerce 'Serializer' => from 'Str' =>
-  via { Data::Serializer->new( serializer => $_ ) };
+  via { Data::Serializer->new( serializer => $_, raw => 1 ) };
 
 use constant Max_Time => 0xffffffff;
 
-has 'expires_at'       => ( is => 'rw', default => Max_Time );
-has 'expires_in'       => ( is => 'rw', isa     => 'Duration', coerce => 1 );
+has 'chi_root_class' => ( is => 'ro' );
+has 'expires_at'     => ( is => 'rw', default => Max_Time );
+has 'expires_in'     => ( is => 'rw', isa => 'Duration', coerce => 1 );
 has 'expires_variance' => ( is => 'rw', default => 0.0 );
-has 'is_subcache'  => ( is => 'rw' );
-has 'namespace'    => ( is => 'ro', isa => 'Str', default => 'Default' );
+has 'is_subcache' => ( is => 'rw' );
+has 'namespace'    => ( is => 'ro', isa => 'Str',     default => 'Default' );
 has 'on_get_error' => ( is => 'rw', isa => 'OnError', default => 'log' );
 has 'on_set_error' => ( is => 'rw', isa => 'OnError', default => 'log' );
-has 'serializer' => (
+has 'serializer'   => (
     is      => 'rw',
     isa     => 'Serializer',
     coerce  => 1,
@@ -101,11 +104,20 @@ sub desc {
     );
 }
 
+my $null_logger = CHI::NullLogger->new();
+
+sub logger {
+    my ($self) = @_;
+
+    ## no critic (ProhibitPackageVars)
+    return $CHI::Logger;
+}
+
 sub get {
     my ( $self, $key, %params ) = @_;
     croak "must specify key" unless defined($key);
 
-    my $log = CHI->logger();
+    my $log = $self->logger();
 
     # Fetch cache object
     #
@@ -122,20 +134,15 @@ sub get {
     }
     my $obj =
       CHI::CacheObject->unpack_from_data( $key, $data, $self->serializer );
-
-    # Handle expire_if
-    #
-    if ( defined( my $code = $params{expire_if} ) ) {
-        my $retval = $code->($obj);
-        if ($retval) {
-            $self->expire($key);
-            return undef;
-        }
+    if ( defined( my $obj_ref = $params{obj_ref} ) ) {
+        $$obj_ref = $obj;
     }
 
     # Check if expired
     #
-    if ( $obj->is_expired() ) {
+    my $is_expired = $obj->is_expired()
+      || ( defined( $params{expire_if} ) && $params{expire_if}->($obj) );
+    if ($is_expired) {
         $self->_log_get_result( $log, $key, "MISS (expired)" )
           if $log->is_debug;
 
@@ -256,13 +263,16 @@ sub set {
     my $obj =
       CHI::CacheObject->new( $key, $value, $created_at, $early_expires_at,
         $expires_at, $self->serializer );
+    if ( defined( my $obj_ref = $options->{obj_ref} ) ) {
+        $$obj_ref = $obj;
+    }
     eval { $self->_set_object( $key, $obj ) };
     if ( my $error = $@ ) {
         $self->_handle_error( $key, $error, 'setting', $self->on_set_error() );
         return;
     }
 
-    my $log = CHI->logger();
+    my $log = $self->logger();
     if ( $log->is_debug ) {
         my $log_expires_in =
           defined($expires_at) ? ( $expires_at - $created_at ) : undef;
@@ -470,7 +480,7 @@ sub _handle_error {
     for ($on_error) {
         ( ref($_) eq 'CODE' ) && do { $_->( $msg, $key, $error ) };
         /^log$/
-          && do { my $log = CHI->logger; $log->error($msg) };
+          && do { my $log = $self->logger; $log->error($msg) };
         /^ignore$/ && do { };
         /^warn$/   && do { carp $msg };
         /^die$/    && do { croak $msg };

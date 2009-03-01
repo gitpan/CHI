@@ -1,17 +1,14 @@
 package CHI::Driver::FastMmap;
+use Carp;
 use Cache::FastMmap;
-use CHI::Util qw(dp);
+use CHI::Util qw(read_dir);
 use File::Path qw(mkpath);
-use File::Slurp qw(read_dir);
 use File::Spec::Functions qw(catdir catfile splitdir tmpdir);
-use Moose;
+use Mouse;
 use strict;
 use warnings;
 
-extends 'CHI::Driver';
-
-with 'CHI::Driver::Role::CacheContainer' =>
-  { excludes => [qw( get_keys get_namespaces )] };
+extends 'CHI::Driver::Base::CacheContainer';
 
 has 'dir_create_mode' => ( is => 'ro', isa => 'Int', default => oct(775) );
 has 'root_dir' => (
@@ -19,9 +16,6 @@ has 'root_dir' => (
     isa     => 'Str',
     default => catdir( tmpdir(), "chi-driver-fastmmap" )
 );
-
-__PACKAGE__->meta->alias_method(
-    'fm_cache' => __PACKAGE__->can('_contained_cache') );
 
 __PACKAGE__->meta->make_immutable();
 
@@ -39,12 +33,18 @@ sub BUILD {
         ),
         %{ $self->non_common_constructor_params($params) },
     };
+    $self->{_contained_cache} = $self->_build_contained_cache;
 }
 
 sub _build_contained_cache {
     my ($self) = @_;
 
     return Cache::FastMmap->new( %{ $self->{fm_params} } );
+}
+
+sub fm_cache {
+    my $self = shift;
+    return $self->_contained_cache(@_);
 }
 
 sub get_keys {
@@ -63,6 +63,19 @@ sub get_namespaces {
       map { $self->unescape_for_filename( substr( $_, 0, -4 ) ) }
       grep { /\.dat$/ } @contents;
     return @namespaces;
+}
+
+# Capture set failures
+sub store {
+    my $self   = shift;
+    my $result = $self->_contained_cache->set(@_);
+    if ( !$result ) {
+        my ( $key, $value ) = @_;
+        croak(
+            sprintf( "fastmmap set failed - value too large? (%d bytes)",
+                length($value) )
+        );
+    }
 }
 
 1;

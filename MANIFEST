@@ -13,6 +13,7 @@ inc/Module/Install/WriteAll.pm
 lib/CHI.pm
 lib/CHI/CacheObject.pm
 lib/CHI/Driver.pm
+lib/CHI/Driver/Base/CacheContainer.pm
 lib/CHI/Driver/CacheCache.pm
 lib/CHI/Driver/Development.pod
 lib/CHI/Driver/FastMmap.pm
@@ -20,8 +21,8 @@ lib/CHI/Driver/File.pm
 lib/CHI/Driver/Memory.pm
 lib/CHI/Driver/Multilevel.pm
 lib/CHI/Driver/Null.pm
-lib/CHI/Driver/Role/CacheContainer.pm
 lib/CHI/NullLogger.pm
+lib/CHI/Serializer/Storable.pm
 lib/CHI/t/Driver.pm
 lib/CHI/t/Driver/CacheCache.pm
 lib/CHI/t/Driver/FastMmap.pm
@@ -33,6 +34,7 @@ lib/CHI/t/Driver/Multilevel/Single.pm
 lib/CHI/t/Driver/Null.pm
 lib/CHI/t/GetError.pm
 lib/CHI/t/Initialize.pm
+lib/CHI/t/Multilevel.pm
 lib/CHI/t/RequiredModules.pm
 lib/CHI/t/Sanity.pm
 lib/CHI/t/SetError.pm
@@ -64,6 +66,7 @@ t/Driver-Multilevel.t
 t/Driver-Null.t
 t/GetError.t
 t/Initialize.t
+t/Multilevel.t
 t/pod.t
 t/RequiredModules.t
 t/Sanity.t

@@ -3,7 +3,7 @@ use Carp;
 use CHI::Util qw(dp);
 use Hash::MoreUtils qw(slice_exists);
 use List::MoreUtils qw(uniq);
-use Moose;
+use Mouse;
 use strict;
 use warnings;
 
@@ -21,16 +21,17 @@ sub BUILD {
 
     my $subcaches = $self->{subcaches};
     my %subparams =
-      slice_exists( $_[0], 'namespace', 'on_get_error', 'on_set_error' );
+      slice_exists( $_[0], 'namespace', 'on_get_error', 'on_set_error',
+        'serializer' );
     foreach my $subcache (@$subcaches) {
         if ( ref($subcache) eq 'HASH' ) {
             my $subcache_options = $subcache;
-            my $chi_class = 'CHI';    # TODO: make this work with CHI subclasses
+            my $chi_class        = $self->chi_root_class;    # e.g. 'CHI'
             $subcache = $chi_class->new( %subparams, %$subcache_options );
             if (
                 my ($option) =
                 grep { defined( $subcache_options->{$_} ) }
-                qw(expires_at expires_in expires_variance)
+                qw(expires_at expires_in expires_variance serializer)
               )
             {
                 croak "expiration option '$option' not supported in subcache";
@@ -142,7 +143,7 @@ CHI::Driver::Multilevel -- Use several caches chained together
 
     use CHI;
 
-    my $cache = CHI->new(
+    my $cache = vCHI->new(
         driver => 'Multilevel',
         subcaches => [
             { driver => 'Memory' },

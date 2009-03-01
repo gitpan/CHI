@@ -19,18 +19,15 @@ no_index:
     - inc
     - t
 requires: 
-  Data::Serializer: 0.43
   Data::UUID: 0
   Digest::JHash: 0
-  File::Slurp: 0
   File::Spec: 0.80
   Hash::MoreUtils: 0
   List::MoreUtils: 0.13
-  Module::Find: 0.05
   Module::Load::Conditional: 0
-  Moose: 0.54
-  MooseX::AttributeHelpers: 0.08
+  Mouse: 0.15
   Storable: 0
+  Time::Duration: 1.06
   Time::Duration::Parse: 0.03
   perl: 5.6.0
-version: 0.091
+version: 0.10

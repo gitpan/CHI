@@ -6,7 +6,7 @@ use CHI::Util qw(require_dynamic);
 use strict;
 use warnings;
 
-our $VERSION = '0.091';
+our $VERSION = '0.10';
 
 our $Logger = CHI::NullLogger->new();    ## no critic
 
@@ -37,7 +37,7 @@ sub new {
         require_dynamic($driver_class);
     }
 
-    return $driver_class->new(%params);
+    return $driver_class->new( chi_root_class => $class, %params );
 }
 
 1;
@@ -164,18 +164,26 @@ An object to use for serializing data before storing it in the cache, and deseri
 data before retrieving it from the cache.
 
 If this is a string, a L<Data::Serializer|Data::Serializer> object will be created, with
-the string passed as the 'serializer' option. Common options include 'Storable',
-'Data::Dumper', and 'YAML'.
+the string passed as the 'serializer' option and raw=1. Common options include 'Storable',
+'Data::Dumper', and 'YAML'. If this is a hashref,
+L<Data::Serializer|Data::Serializer-E<gt>new> will be called with the hash. You will need
+to ensure Data::Serializer is installed to use these options.
 
-Otherwise, this must be a L<Data::Serializer|Data::Serializer> object, or another object
+Otherwise, this must be a L<Data::Serializer|Data::Serializer> object or another object
 that implements I<serialize()> and I<deserialize()>.
 
 e.g.
 
+    # Serialize using raw Data::Dumper
     my $cache = CHI->new(serializer => 'Data::Dumper');
-    my $cache = CHI->new(serializer => Data::Serializer->new(serializer => 'Data::Dumper', compress => 1));
 
-The default is to use plain Storable.
+    # Serialize using Data::Dumper, compressed and (per Data::Serializer defaults) hex-encoded
+    my $cache = CHI->new(serializer => { serializer => 'Data::Dumper', compress => 1 });
+
+    # Serialize using custom object
+    my $cache = CHI->new(serializer => My::Custom::Serializer->new())
+
+The default is to use raw Storable.
 
 =item expires_in [DURATION]
 
@@ -216,6 +224,10 @@ I<coderef> - call this code reference with three arguments: an appropriate messa
 
 =back
 
+=item no_logging
+
+If set to true, all get and set logging for this cache will be supressed.
+
 =back    
 
 Some drivers will take additional constructor options. For example, the File driver takes
@@ -242,8 +254,8 @@ I<$key> may be followed by one or more name/value parameters:
 
 If I<$key> exists and has not expired, call code reference with the
 L<CHI::CacheObject|CHI::CacheObject> as a single parameter. If code returns a true value,
-expire the data. For example, to expire the cache if I<$file> has changed since
-the value was computed:
+C<get> returns undef as if the item were expired. For example, to treat the cache as
+expired if I<$file> has changed since the value was computed:
 
     $cache->get('foo', expire_if => sub { $_[0]->created_at < (stat($file))[9] });
 
@@ -339,14 +351,9 @@ Remove the data associated with the I<$key> from the cache.
 
 =item expire( $key )
 
-If I<$key> exists, expire it by setting its expiration time into the past.
-
-=item expire_if ( $key, $code )
-
-If I<$key> exists, call code reference I<$code> with the L<CHI::CacheObject|CHI::CacheObject> as a single
-parameter. If I<$code> returns a true value, expire the data. e.g.
-
-    $cache->expire_if('foo', sub { $_[0]->created_at < (stat($file))[9] });
+If I<$key> exists, expire it by setting its expiration time into the past. Does not
+necessarily remove the data. Since this involves essentially setting the value again,
+C<remove> may be more efficient for some drivers.
 
 =back
 
@@ -445,8 +452,29 @@ Returns a hash reference containing all the non-expired keys and values in the c
 
 =head2 Property accessors
 
+=over
+
+=item short_driver_name( )
+
+Returns the name of the driver class, minus the CHI::Driver:: prefix, if any. e.g.
+
+    CHI->new(driver=>'File')->short_driver_name
+       => File
+    CHI->new(driver_class=>'CHI::Driver::File')->short_driver_name
+       => File
+    CHI->new(driver_class=>'My::Driver::File')->short_driver_name
+       => My::Driver::File
+
 There is a read-only accessor for C<namespace>, and read/write accessors for
 C<expires_in>, C<expires_at>, C<expires_variance>, C<on_get_error>, and C<on_set_error>.
+
+=back
+
+=head2 Deprecated methods
+
+The following methods are deprecated and will be removed in a later version:
+
+    expire_if
 
 =head1 DURATION EXPRESSIONS
 
