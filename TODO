@@ -25,13 +25,6 @@ PAIRED CACHE RELATED
 
 TO DO
 
-* Serialization
-  * Use raw Storable by default
-  * When passing string as serializer, use raw=>1
-  * serializer should be passed from multilevel parent to children
-* Switch to Mouse instead of Moose, depend only on Mouse
-. Do we need expire() and expire_if() as functions, really? Cache::Cache didn't have expire(), and it is generally better to remove() than expire() (and has the same effect anyway). Deprecate?
-  . Well, expire() could be useful for some if they want the old value to remain there, so just put a warning in docs that remove() is more efficient. expire_if() can be deprecated.
 * Make it easy to designate l1 cache and clone-to cache that DWIM - either with Multilevel and a way to designate methods, or with properties like l1_cache (pre_cache?), backup_cache (post_cache?), and clone_to_cache properties. Maybe it is better to have a primary/secondary relationship as opposed to multilevel's equal partner relationship.
 * get_multi_arrayref should be defined in terms of fetch_multi_arrayref, whose results are then passed along to get() with the data param.
 * Stats collection - with collect_stats flag, collect stats in global object (one per process), output when object gets destroyed or at certain intervals

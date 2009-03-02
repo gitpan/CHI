@@ -2,6 +2,10 @@ Revision history for CHI
 
 ** denotes an incompatible change
 
+0.101  Mar 2, 2009
+
+- Don't use Data::Serializer up front
+
 0.10  Feb 28, 2009
 
 - Switch to Mouse instead of Moose, to reduce install dependencies and overhead. Eliminate
@@ -16,7 +20,6 @@ Revision history for CHI
 - When serializer passed as a string, use raw=>1 so as not to hex-encode or insert token
 - Allow serializer to be passed as a hashref
 - Fix bug when specifying serializer with multilevel driver
-
 
 0.091 Jan 2, 2009
 
