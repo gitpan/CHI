@@ -30,4 +30,4 @@ requires:
   Time::Duration: 1.06
   Time::Duration::Parse: 0.03
   perl: 5.6.0
-version: 0.101
+version: 0.102

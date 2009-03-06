@@ -4,6 +4,7 @@ use CHI::CacheObject;
 use CHI::Serializer::Storable;
 use CHI::Util qw(parse_duration dp);
 use List::MoreUtils qw(pairwise);
+use Module::Load::Conditional qw(can_load);
 use Mouse;
 use Mouse::Util::TypeConstraints;
 use Scalar::Util qw(blessed);
@@ -18,16 +19,14 @@ subtype Duration => as 'Int' => where { $_ > 0 };
 coerce 'Duration' => from 'Str' => via { parse_duration($_) };
 
 my $default_serializer = CHI::Serializer::Storable->new();
-
-# Force these methods to be autoloaded, else the can() won't work
-#
-$default_serializer->deserialize( $default_serializer->serialize( [] ) );
-subtype Serializer  => as 'Object';
-coerce 'Serializer' => from 'HashRef' =>
-  via { require Data::Serializer; Data::Serializer->new(%$_) };
+my $data_serializer_loaded =
+  can_load( modules => { 'Data::Serializer' => undef } );
+subtype Serializer => as 'Object';
+coerce 'Serializer' => from 'HashRef' => via {
+    _build_data_serializer($_);
+};
 coerce 'Serializer' => from 'Str' => via {
-    require Data::Serializer;
-    Data::Serializer->new( serializer => $_, raw => 1 );
+    _build_data_serializer( { serializer => $_, raw => 1 } );
 };
 
 use constant Max_Time => 0xffffffff;
@@ -93,6 +92,18 @@ sub _build_short_driver_name {
     return $name;
 }
 
+sub _build_data_serializer {
+    my ($params) = @_;
+
+    if ($data_serializer_loaded) {
+        return Data::Serializer->new(%$params);
+    }
+    else {
+        croak
+          "Data::Serializer not installed, cannot handle serializer argument";
+    }
+}
+
 sub desc {
     my $self = shift;
 
@@ -102,8 +113,6 @@ sub desc {
         $self->{namespace}
     );
 }
-
-my $null_logger = CHI::NullLogger->new();
 
 sub logger {
     my ($self) = @_;

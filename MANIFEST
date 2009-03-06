@@ -67,6 +67,7 @@ t/Driver-Null.t
 t/GetError.t
 t/Initialize.t
 t/Multilevel.t
+t/no-data-serializer.t
 t/pod.t
 t/RequiredModules.t
 t/Sanity.t
