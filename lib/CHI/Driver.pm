@@ -3,11 +3,12 @@ use Carp;
 use CHI::CacheObject;
 use CHI::Serializer::Storable;
 use CHI::Util qw(parse_duration dp);
+use Hash::MoreUtils qw(slice_exists);
 use List::MoreUtils qw(pairwise);
 use Module::Load::Conditional qw(can_load);
 use Mouse;
 use Mouse::Util::TypeConstraints;
-use Scalar::Util qw(blessed);
+use Scalar::Util qw(blessed weaken);
 use Time::Duration;
 use strict;
 use warnings;
@@ -15,6 +16,8 @@ use warnings;
 type OnError => where { ref($_) eq 'CODE' || /^(?:ignore|warn|die|log)$/ };
 
 subtype Duration => as 'Int' => where { $_ > 0 };
+
+subtype UnblessedHashRef => as 'HashRef' => where { !blessed($_) };
 
 coerce 'Duration' => from 'Str' => via { parse_duration($_) };
 
@@ -32,21 +35,26 @@ coerce 'Serializer' => from 'Str' => via {
 use constant Max_Time => 0xffffffff;
 
 has 'chi_root_class' => ( is => 'ro' );
+has 'label'          => ( is => 'rw', builder => '_build_label' );
 has 'expires_at'     => ( is => 'rw', default => Max_Time );
 has 'expires_in'     => ( is => 'rw', isa => 'Duration', coerce => 1 );
 has 'expires_variance' => ( is => 'rw', default => 0.0 );
-has 'is_subcache' => ( is => 'rw' );
-has 'namespace'    => ( is => 'ro', isa => 'Str',     default => 'Default' );
+has 'l1_cache'         => ( is => 'ro', isa     => 'UnblessedHashRef' );
+has 'mirror_cache'     => ( is => 'ro', isa     => 'UnblessedHashRef' );
+has 'namespace' => ( is => 'ro', isa => 'Str', default => 'Default' );
 has 'on_get_error' => ( is => 'rw', isa => 'OnError', default => 'log' );
 has 'on_set_error' => ( is => 'rw', isa => 'OnError', default => 'log' );
+has 'parent_cache' => ( is => 'ro' );
 has 'serializer'   => (
-    is      => 'rw',
+    is      => 'ro',
     isa     => 'Serializer',
     coerce  => 1,
     default => sub { $default_serializer }
 );
 has 'short_driver_name' =>
   ( is => 'ro', builder => '_build_short_driver_name' );
+has 'subcache_type' => ( is => 'ro' );
+has 'subcaches' => ( is => 'ro', default => sub { [] } );
 
 __PACKAGE__->meta->make_immutable();
 
@@ -54,6 +62,16 @@ __PACKAGE__->meta->make_immutable();
 #
 my %common_params =
   map { ( $_, 1 ) } keys( %{ __PACKAGE__->meta->get_attribute_map } );
+
+# List of parameter keys that initialize a subcache
+#
+my @subcache_types = qw(l1_cache mirror_cache);
+
+# List of parameters that are automatically inherited by a subcache
+#
+my @subcache_inherited_param_keys = (
+    qw(expires_at expires_in expires_variance namespace on_get_error on_set_error)
+);
 
 sub non_common_constructor_params {
     my ( $class, $params ) = @_;
@@ -87,9 +105,15 @@ our $Test_Time;    ## no critic (ProhibitPackageVars)
 sub _build_short_driver_name {
     my ($self) = @_;
 
-    ( my $name = ref($self) ) =~ s/^CHI::Driver:://;
+    ( my $name = $self->driver_class ) =~ s/^CHI::Driver:://;
 
     return $name;
+}
+
+sub _build_label {
+    my ($self) = @_;
+
+    return $self->_build_short_driver_name;
 }
 
 sub _build_data_serializer {
@@ -99,19 +123,33 @@ sub _build_data_serializer {
         return Data::Serializer->new(%$params);
     }
     else {
-        croak
-          "Data::Serializer not installed, cannot handle serializer argument";
+        croak "Data::Serializer not loaded, cannot handle serializer argument";
     }
 }
 
-sub desc {
-    my $self = shift;
+sub BUILD {
+    my ( $self, $params ) = @_;
 
-    return sprintf(
-        "CHI cache (driver=%s, namespace=%s)",
-        $self->{short_driver_name},
-        $self->{namespace}
-    );
+    # Create subcaches as necessary (l1_cache, mirror_cache)
+    # Eventually might allow existing caches to be passed
+    #
+    foreach my $subcache_type (@subcache_types) {
+        if ( my $subcache_params = $params->{$subcache_type} ) {
+            my $chi_root_class = $self->chi_root_class;
+            my %inherited_params =
+              slice_exists( $params, @subcache_inherited_param_keys );
+            my $default_label = $self->label . ":$subcache_type";
+            my $subcache      = $chi_root_class->new(
+                label => $default_label,
+                %inherited_params, %$subcache_params
+            );
+            $subcache->{subcache_type} = $subcache_type;
+            $subcache->{parent_cache}  = $self;
+            weaken( $subcache->{parent_cache} );
+            $self->{$subcache_type} = $subcache;
+            push( @{ $self->{subcaches} }, $subcache );
+        }
+    }
 }
 
 sub logger {
@@ -124,19 +162,27 @@ sub logger {
 sub get {
     my ( $self, $key, %params ) = @_;
     croak "must specify key" unless defined($key);
+    my $l1_cache = $self->{l1_cache};
 
-    my $log = $self->logger();
+    # Consult l1 cache first if present
+    #
+    if ( defined($l1_cache) ) {
+        if ( defined( my $result = $l1_cache->get( $key, %params ) ) ) {
+            return $result;
+        }
+    }
 
     # Fetch cache object
     #
     my $data = $params{data} || eval { $self->fetch($key) };
     if ( my $error = $@ ) {
-        $self->_handle_error( $key, $error, 'getting', $self->on_get_error() );
+        $self->_handle_get_error( $error, $key );
         return;
     }
 
+    my $log = $self->logger();
     if ( !defined $data ) {
-        $self->_log_get_result( $log, $key, "MISS (not in cache)" )
+        $self->_log_get_result( $log, "MISS (not in cache)", $key )
           if $log->is_debug;
         return undef;
     }
@@ -151,7 +197,7 @@ sub get {
     my $is_expired = $obj->is_expired()
       || ( defined( $params{expire_if} ) && $params{expire_if}->($obj) );
     if ($is_expired) {
-        $self->_log_get_result( $log, $key, "MISS (expired)" )
+        $self->_log_get_result( $log, "MISS (expired)", $key )
           if $log->is_debug;
 
         # If busy_lock value provided, set a new "temporary" expiration time that many
@@ -168,9 +214,21 @@ sub get {
         return undef;
     }
 
-    # Success
+    # Success - write back to l1 cache if present, and return result
     #
-    $self->_log_get_result( $log, $key, "HIT" ) if $log->is_debug;
+    if ( defined($l1_cache) ) {
+
+        # ** Should call store directly if caches are object-compatible
+        $l1_cache->set(
+            $key,
+            $obj->value,
+            {
+                expires_at       => $obj->expires_at,
+                early_expires_at => $obj->early_expires_at
+            }
+        );
+    }
+    $self->_log_get_result( $log, "HIT", $key ) if $log->is_debug;
     return $obj->value;
 }
 
@@ -228,7 +286,8 @@ sub _default_set_options {
 }
 
 sub set {
-    my ( $self, $key, $value, $options ) = @_;
+    my $self = shift;
+    my ( $key, $value, $options ) = @_;
     croak "must specify key" unless defined($key);
     return unless defined($value);
 
@@ -261,8 +320,8 @@ sub set {
       ? $time + parse_duration( $options->{expires_in} )
       : $options->{expires_at};
     my $early_expires_at =
-      ( $expires_at == Max_Time )
-      ? Max_Time
+        defined( $options->{early_expires_at} ) ? $options->{early_expires_at}
+      : ( $expires_at == Max_Time )             ? Max_Time
       : $expires_at -
       ( ( $expires_at - $time ) * $options->{expires_variance} );
 
@@ -276,7 +335,9 @@ sub set {
     }
     eval { $self->_set_object( $key, $obj ) };
     if ( my $error = $@ ) {
-        $self->_handle_error( $key, $error, 'setting', $self->on_set_error() );
+        my $log_expires_in =
+          defined($expires_at) ? ( $expires_at - $created_at ) : undef;
+        $self->_handle_set_error( $error, $key, $value, $log_expires_in );
         return;
     }
 
@@ -286,6 +347,8 @@ sub set {
           defined($expires_at) ? ( $expires_at - $created_at ) : undef;
         $self->_log_set_result( $log, $key, $value, $log_expires_in );
     }
+
+    $self->call_method_on_subcaches( 'set', @_ );
 
     return $value;
 }
@@ -303,6 +366,7 @@ sub expire {
     }
 }
 
+# DEPRECATED
 sub expire_if {
     my ( $self, $key, $code ) = @_;
     croak "must specify key and code" unless defined($key) && defined($code);
@@ -436,6 +500,23 @@ sub is_empty {
     }
 }
 
+sub call_method_on_subcaches {
+    my $self      = shift;
+    my $method    = shift;
+    my $subcaches = $self->subcaches;
+    return unless $subcaches;
+
+    foreach my $subcache (@$subcaches) {
+        $subcache->$method(@_);
+    }
+}
+
+sub is_subcache {
+    my ($self) = @_;
+
+    return defined( $self->{subcache_type} );
+}
+
 sub _set_object {
     my ( $self, $key, $obj ) = @_;
 
@@ -444,46 +525,40 @@ sub _set_object {
 }
 
 sub _log_get_result {
-    my ( $self, $log, $key, $msg ) = @_;
-
-    # if $log->is_debug - done in caller
-    if ( !$self->is_subcache ) {
-        $log->debug(
-            sprintf(
-                "cache get for namespace='%s', key='%s', driver='%s': %s",
-                $self->{namespace}, $key, $self->{short_driver_name}, $msg
-            )
-        );
-    }
+    my $self = shift;
+    my $log  = shift;
+    my $msg  = shift;
+    $log->debug( sprintf( "%s: %s", $self->_describe_cache_get(@_), $msg ) );
 }
 
 sub _log_set_result {
-    my ( $self, $log, $key, $value, $expires_in ) = @_;
-
-    # if $log->is_debug - done in caller
-    if ( !$self->is_subcache ) {
-        $log->debug(
-            sprintf(
-                "cache set for namespace='%s', key='%s', size=%d, expires='%s', driver='%s'",
-                $self->{namespace},
-                $key,
-                length($value),
-                defined($expires_in)
-                ? Time::Duration::concise(
-                    Time::Duration::duration_exact($expires_in)
-                  )
-                : 'never',
-                $self->{short_driver_name}
-            )
-        );
-    }
+    my $self = shift;
+    my $log  = shift;
+    $log->debug( $self->_describe_cache_set(@_) );
 }
 
-sub _handle_error {
-    my ( $self, $key, $error, $action, $on_error ) = @_;
+sub _handle_get_error {
+    my $self  = shift;
+    my $error = shift;
+    my $key   = $_[0];
 
-    my $msg = sprintf( "error %s key '%s' in %s: %s",
-        $action, $key, $self->desc, $error );
+    my $msg =
+      sprintf( "error during %s: %s", $self->_describe_cache_get(@_), $error );
+    $self->_dispatch_error_msg( $msg, $error, $self->on_get_error(), $key );
+}
+
+sub _handle_set_error {
+    my $self  = shift;
+    my $error = shift;
+    my $key   = $_[0];
+
+    my $msg =
+      sprintf( "error during %s: %s", $self->_describe_cache_set(@_), $error );
+    $self->_dispatch_error_msg( $msg, $error, $self->on_set_error(), $key );
+}
+
+sub _dispatch_error_msg {
+    my ( $self, $msg, $error, $on_error, $key ) = @_;
 
     for ($on_error) {
         ( ref($_) eq 'CODE' ) && do { $_->( $msg, $key, $error ) };
@@ -493,6 +568,30 @@ sub _handle_error {
         /^warn$/   && do { carp $msg };
         /^die$/    && do { croak $msg };
     }
+}
+
+sub _describe_cache_get {
+    my ( $self, $key ) = @_;
+
+    return sprintf( "cache get for namespace='%s', key='%s', cache='%s'",
+        $self->{namespace}, $key, $self->{label} );
+}
+
+sub _describe_cache_set {
+    my ( $self, $key, $value, $expires_in ) = @_;
+
+    return sprintf(
+        "cache set for namespace='%s', key='%s', size=%d, expires='%s', cache='%s'",
+        $self->{namespace},
+        $key,
+        length($value),
+        defined($expires_in)
+        ? Time::Duration::concise(
+            Time::Duration::duration_exact($expires_in)
+          )
+        : 'never',
+        $self->{label}
+    );
 }
 
 1;

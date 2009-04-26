@@ -15,18 +15,10 @@ SYNOPSIS
         );
         my $cache = CHI->new(
             driver  => 'Memcached',
-            servers => [ "10.0.0.15:11211", "10.0.0.15:11212" ]
+            servers => [ "10.0.0.15:11211", "10.0.0.15:11212" ],
+            l1_cache => { driver => 'FastMmap', root_dir => '/path/to/root' }
         );
-        my $cache = CHI->new(
-            driver => 'Multilevel',
-            subcaches => [
-                { driver => 'Memory' },
-                {
-                    driver  => 'Memcached',
-                    servers => [ "10.0.0.15:11211", "10.0.0.15:11212" ]
-                }
-            ],
-        );
+        my $cache = CHI->new( driver => 'DBI', dbh => $dbh );
 
         # Create your own driver
         # 
@@ -34,7 +26,6 @@ SYNOPSIS
 
         # (These drivers coming soon...)
         #
-        my $cache = CHI->new( driver => 'DBI', dbh => $dbh, table => 'app_cache' );
         my $cache = CHI->new( driver => 'BerkeleyDB', root_dir => '/path/to/root' );
 
         # Basic cache operations
@@ -61,8 +52,7 @@ DESCRIPTION
 
 AVAILABILITY OF DRIVERS
     The following drivers are currently available as part of this
-    distribution. Other drivers can be found on CPAN by searching for
-    "CHI::Driver".
+    distribution:
 
     *   CHI::Driver::Memory - In-process memory based cache
 
@@ -74,10 +64,17 @@ AVAILABILITY OF DRIVERS
 
     *   CHI::Driver::FastMmap - Dummy cache in which nothing is stored
 
-    *   CHI::Driver::Multilevel - Cache formed from several subcaches
-        chained together
-
     *   CHI::Driver::CacheCache - CHI wrapper for Cache::Cache
+
+    The following drivers are currently available as separate CPAN
+    distributions:
+
+    *   CHI::Driver::Memcached - Distributed memory-based cache
+
+    *   CHI::Driver::DBI - Database-based cache
+
+    This list is likely incomplete. A complete set of drivers can be found
+    on CPAN by searching for "CHI::Driver".
 
 RELATION TO OTHER MODULES
   Cache::Cache
@@ -173,7 +170,7 @@ TODO
     *   Perform cache benchmarks comparing both CHI and non-CHI cache
         implementations
 
-    *   Release BerkeleyDB and DBI drivers as separate CPAN distributions
+    *   Release BerkeleyDB drivers as separate CPAN distributions
 
     *   Add docs comparing various strategies for reducing miss stampedes
         and cost of recomputes

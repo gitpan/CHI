@@ -2,6 +2,16 @@ Revision history for CHI
 
 ** denotes an incompatible change
 
+0.2  Apr 25, 2009
+
+- ** Removed CHI::Driver::Multilevel, replaced with subcaches
+- ** ref($driver) is no longer simply the driver class, it is an auto-generated wrapper
+     class like CHI::Wrapped::CHI::Driver::Memory - this is so that certain driver methods
+     can be automatically wrapped
+- Added a more practical and intuitive multi-level cache mechanism: subcaches. l1_cache
+  and mirror_cache are the first two supported subcaches
+- Added customizable cache label, used in logs and error messages
+
 0.102  Mar 6, 2009
 
 - Skip get_namespaces in tests with drivers that don't support it
@@ -13,15 +23,15 @@ Revision history for CHI
 
 0.10  Feb 28, 2009
 
+- ** Deprecate expire_if method - this can easily be done manually, and it now differs
+    deceptively from the expire_if option to get()
+- ** Change expire_if option to simply return undef, without actually expiring the item
 - Switch to Mouse instead of Moose, to reduce install dependencies and overhead. Eliminate
   Moose-isms as needed. Eventually may switch to Any::Moose but want to get comfortable
   with Mouse first.
 - Eliminate dependencies on Data::Serializer, File::Slurp, and Module::Find
 - Revert Memory driver implementation to more readable and illustrative form
 - Handle value-too-large errors in FastMmap driver
-- Change expire_if option to simply return undef, without actually expiring the item
-- Deprecate expire_if method - this can easily be done manually, and it now differs
-  deceptively from the expire_if option to get()
 - When serializer passed as a string, use raw=>1 so as not to hex-encode or insert token
 - Allow serializer to be passed as a hashref
 - Fix bug when specifying serializer with multilevel driver
