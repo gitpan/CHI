@@ -68,7 +68,6 @@ t/Driver-Subcache-l1_cache.t
 t/Driver-Subcache-mirror_cache.t
 t/GetError.t
 t/Initialize.t
-t/Multilevel.t
 t/no-data-serializer.t
 t/RequiredModules.t
 t/Sanity.t

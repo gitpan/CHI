@@ -1,4 +1,5 @@
 package CHI::Driver::Wrapper;
+use CHI::Util qw(dp);
 use Carp;
 use strict;
 use warnings;
@@ -13,6 +14,26 @@ foreach my $method (qw(remove expire expire_if clear purge)) {
         $self->call_method_on_subcaches( $method, @_ );
         return $retval;
     };
+}
+
+# Call on l1 cache first, then call on primary cache with remainder of keys
+#
+sub get_multi_hashref {
+    my $self = shift;
+    my ($keys) = @_;
+
+    my $l1_cache = $self->l1_cache;
+    if ( defined($l1_cache) ) {
+        my $l1_result = $l1_cache->get_multi_hashref($keys);
+        my @primary_keys = grep { !defined( $l1_result->{$_} ) } @$keys;
+        my $primary_result =
+          $self->call_native_driver( 'get_multi_hashref', \@primary_keys );
+        my $result = { %$l1_result, %$primary_result };
+        return $result;
+    }
+    else {
+        return $self->call_native_driver( 'get_multi_hashref', $keys );
+    }
 }
 
 # Call the specified $method on the native driver class, e.g. CHI::Driver::Memory.  SUPER
@@ -62,22 +83,30 @@ CHI::Driver::Wrapper -- wrapper class for all CHI drivers
 
 =head1 DESCRIPTION
 
-This package contains 'wrappers' for certain driver methods. The wrappers will be called
-first, and then have the opportunity to call the native driver methods.
+This package contains 'wrappers' for certain driver methods. The wrappers will
+be called first, and then have the opportunity to call the native driver
+methods.
 
-How this works: when each driver is used for the first time, e.g. CHI::Driver::Memory:
+How this works: when each driver is used for the first time, e.g.
+CHI::Driver::Memory:
 
    my $cache = CHI->new('Memory');
 
-CHI autogenerates a new class called CHI::Wrapped::CHI::Driver::Memory, which inherits from
+CHI autogenerates a new class called CHI::Wrapped::CHI::Driver::Memory, which
+inherits from
 
    ('CHI::Driver::Wrapper', 'CHI::Driver::Memory')
 
-then blesses the actual cache object (and future cache objects of this driver) as
-CHI::Wrapped::CHI::Driver::Memory.
+then blesses the actual cache object (and future cache objects of this driver)
+as CHI::Wrapped::CHI::Driver::Memory.
 
-Now, when we call a method like get() or remove(), CHI::Driver::Wrapper has an opportunity to
-handle it first; if not, it goes to the native driver, in this case CHI::Driver::Memory.
+Now, when we call a method like get() or remove(), CHI::Driver::Wrapper has an
+opportunity to handle it first; if not, it goes to the native driver, in this
+case CHI::Driver::Memory.
+
+This is an accidental reinvention of Moose's runtime application of roles to
+instances (see Moose::Cookbook::Roles::Recipe3), which is not currently
+supported by Mouse.
 
 =head1 SEE ALSO
 
@@ -91,7 +120,7 @@ Jonathan Swartz
 
 Copyright (C) 2007 Jonathan Swartz, all rights reserved.
 
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
+This program is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
 
 =cut

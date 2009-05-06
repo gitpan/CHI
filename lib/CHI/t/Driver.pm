@@ -706,7 +706,8 @@ sub test_l1_cache : Test(228) {
 
     # Test with current cache in primary position...
     #
-    $cache = $self->new_cache( l1_cache => { driver => 'Memory' } );
+    $cache =
+      $self->new_cache( l1_cache => { driver => 'Memory', global => 1 } );
     $l1_cache = $cache->l1_cache;
     isa_ok( $cache,    $self->testing_driver_class );
     isa_ok( $l1_cache, 'CHI::Driver::Memory' );
@@ -716,6 +717,7 @@ sub test_l1_cache : Test(228) {
     #
     $cache = CHI->new(
         driver   => 'Memory',
+        global   => 1,
         l1_cache => { $self->new_cache_options() }
     );
     $l1_cache = $cache->l1_cache;
@@ -1105,6 +1107,24 @@ sub test_obj_ref : Tests(8) {
     ok( !defined($obj), "obj not defined before get" );
     $cache->get( $key, obj_ref => \$obj );
     $validate_obj->($obj);
+}
+
+sub test_scalar_return_values : Tests(5) {
+    my $self  = shift;
+    my $cache = $self->{cache};
+
+    my $check = sub {
+        my ($code)        = @_;
+        my $scalar_result = $code->();
+        my @list          = $code->();
+        cmp_deeply( \@list, [$scalar_result] );
+    };
+
+    $check->( sub { $cache->fetch('a') } );
+    $check->( sub { $cache->get('a') } );
+    $check->( sub { $cache->set( 'a', 5 ) } );
+    $check->( sub { $cache->fetch('a') } );
+    $check->( sub { $cache->get('a') } );
 }
 
 sub test_no_leak : Tests(2) {

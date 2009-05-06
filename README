@@ -7,26 +7,30 @@ SYNOPSIS
         # Choose a standard driver
         #
         my $cache = CHI->new( driver => 'Memory' );
-        my $cache = CHI->new( driver => 'File', cache_root => '/path/to/root' );
-        my $cache = CHI->new(
-            driver     => 'FastMmap',
+        my $cache = CHI->new( driver => 'File',
+            cache_root => '/path/to/root'
+        );
+        my $cache = CHI->new( driver => 'FastMmap',
             root_dir   => '/path/to/root',
             cache_size => '1k'
         );
-        my $cache = CHI->new(
-            driver  => 'Memcached',
+        my $cache = CHI->new( driver  => 'Memcached',
             servers => [ "10.0.0.15:11211", "10.0.0.15:11212" ],
             l1_cache => { driver => 'FastMmap', root_dir => '/path/to/root' }
         );
-        my $cache = CHI->new( driver => 'DBI', dbh => $dbh );
+        my $cache = CHI->new( driver => 'DBI',
+            dbh => $dbh
+        );
+
+        # (These drivers coming soon...)
+        #
+        my $cache = CHI->new( driver => 'BerkeleyDB',
+            root_dir => '/path/to/root'
+        );
 
         # Create your own driver
         # 
         my $cache = CHI->new( driver_class => 'My::Special::Driver' );
-
-        # (These drivers coming soon...)
-        #
-        my $cache = CHI->new( driver => 'BerkeleyDB', root_dir => '/path/to/root' );
 
         # Basic cache operations
         #
@@ -49,6 +53,20 @@ DESCRIPTION
     CHI is intended as an evolution of DeWitt Clinton's Cache::Cache
     package, adhering to the basic Cache API but adding new features and
     addressing limitations in the Cache::Cache implementation.
+
+FEATURES
+        * Easy to create new drivers
+
+        * Uniform support for namespaces
+
+        * Automatic [de]serialization of data
+
+        * Multilevel caches
+
+        * Probabilistic expiration and busy locks, to reduce cache miss
+        stampedes
+
+        * Optional logging of cache activity
 
 AVAILABILITY OF DRIVERS
     The following drivers are currently available as part of this
@@ -112,6 +130,16 @@ RELATION TO OTHER MODULES
         e.g. Cache::FastMmap and Cache::Memcached. CHI's goal is to be able
         to support these and other caches with a minimum performance
         overhead and minimum of glue code required.
+
+  Cache
+
+    The Cache distribution is another redesign and implementation of Cache,
+    created by Chris Leishman in 2003. Like CHI, it improves performance and
+    reduces the barrier to implementing new cache drivers. It breaks with
+    the Cache::Cache interface in a few ways that I considered
+    non-negotiable - for example, get/set do not serialize data, and
+    namespaces are an optional feature that drivers may decide not to
+    implement.
 
   Cache::Memcached, Cache::FastMmap, etc.
 

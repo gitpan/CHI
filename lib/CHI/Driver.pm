@@ -395,25 +395,32 @@ sub compute {
     return $value;
 }
 
-sub get_multi_arrayref {
+sub fetch_multi_hashref {
     my ( $self, $keys ) = @_;
-    croak "must specify keys" unless defined($keys);
 
-    return [ map { scalar( $self->get($_) ) } @$keys ];
-}
-
-sub get_multi_array {
-    my $self = shift;
-    return @{ $self->get_multi_arrayref(@_) };
+    return { map { ( $_, $self->fetch($_) ) } @$keys };
 }
 
 sub get_multi_hashref {
     my ( $self, $keys ) = @_;
     croak "must specify keys" unless defined($keys);
 
-    my $values = $self->get_multi_arrayref($keys);
-    my %hash = pairwise { ( $a => $b ) } @$keys, @$values;
-    return \%hash;
+    my $keyvals = $self->fetch_multi_hashref($keys);
+    return { map { ( $_, $self->get( $_, data => $keyvals->{$_} ) ) } @$keys };
+}
+
+# DEPRECATED
+sub get_multi_array {
+    my $self = shift;
+    return @{ $self->get_multi_arrayref(@_) };
+}
+
+sub get_multi_arrayref {
+    my ( $self, $keys ) = @_;
+    croak "must specify keys" unless defined($keys);
+
+    my $keyvals = $self->get_multi_hashref($keys);
+    return [ map { $keyvals->{$_} } @$keys ];
 }
 
 sub set_multi {
@@ -497,6 +504,13 @@ sub is_empty {
 
         $str =~ s/\+([0-9A-Fa-f]{2})/chr(hex($1))/eg if defined $str;
         $str;
+    }
+
+    sub is_escaped_for_filename {
+        my ( $self, $text ) = @_;
+
+        return $self->escape_for_filename( $self->unescape_for_filename($text) )
+          eq $text;
     }
 }
 
@@ -606,11 +620,12 @@ CHI::Driver -- Base class for all CHI drivers.
 
 =head1 DESCRIPTION
 
-This is the base class that all CHI drivers inherit from. It provides the methods
-that one calls on $cache handles, such as get() and set().
+This is the base class that all CHI drivers inherit from. It provides the
+methods that one calls on $cache handles, such as get() and set().
 
-See L<CHI/METHODS> for documentation on $cache methods, and L<CHI::Driver::Development|CHI::Driver::Development>
-for documentation on creating new subclasses of CHI::Driver.
+See L<CHI/METHODS> for documentation on $cache methods, and
+L<CHI::Driver::Development|CHI::Driver::Development> for documentation on
+creating new subclasses of CHI::Driver.
 
 =head1 AUTHOR
 
@@ -620,7 +635,7 @@ Jonathan Swartz
 
 Copyright (C) 2007 Jonathan Swartz.
 
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
+This program is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
 
 =cut
