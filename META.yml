@@ -19,15 +19,15 @@ no_index:
     - inc
     - t
 requires: 
+  Any::Moose: 0.07
   Data::UUID: 0
   Digest::JHash: 0
   File::Spec: 0.80
   Hash::MoreUtils: 0
   List::MoreUtils: 0.13
   Module::Load::Conditional: 0
-  Mouse: 0.15
   Storable: 0
   Time::Duration: 1.06
   Time::Duration::Parse: 0.03
   perl: 5.6.0
-version: 0.21
+version: 0.22

@@ -20,7 +20,7 @@ lib/CHI/Driver/FastMmap.pm
 lib/CHI/Driver/File.pm
 lib/CHI/Driver/Memory.pm
 lib/CHI/Driver/Null.pm
-lib/CHI/Driver/Wrapper.pm
+lib/CHI/Driver/Role/HasSubcaches.pm
 lib/CHI/NullLogger.pm
 lib/CHI/Serializer/Storable.pm
 lib/CHI/t/Driver.pm

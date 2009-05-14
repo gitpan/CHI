@@ -1,5 +1,5 @@
 package CHI::Driver::Null;
-use Mouse;
+use Moose;
 use strict;
 use warnings;
 

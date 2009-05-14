@@ -126,13 +126,12 @@ sub test_simple : Test(1) {
     is( $cache->get( $self->{keys}->{medium} ), $self->{values}->{medium} );
 }
 
-sub test_driver_class : Tests(4) {
+sub test_driver_class : Tests(3) {
     my $self  = shift;
     my $cache = $self->{cache};
 
     isa_ok( $cache, 'CHI::Driver' );
     isa_ok( $cache, $cache->driver_class );
-    isa_ok( $cache, 'CHI::Driver::Wrapper' );
     can_ok( $cache, 'get', 'set', 'remove', 'clear', 'expire' );
 }
 
@@ -1059,6 +1058,18 @@ sub test_cache_object : Test(6) {
     );
 }
 
+sub is_about {
+    my ( $value, $expected, $msg ) = @_;
+
+    my $margin = int( $expected * 0.1 );
+    if ( abs( $value - $expected ) <= $margin ) {
+        pass($msg);
+    }
+    else {
+        fail("$msg - got $value, expected $expected");
+    }
+}
+
 sub test_busy_lock : Test(5) {
     my $self  = shift;
     my $cache = $self->{cache};
@@ -1142,7 +1153,7 @@ sub test_no_leak : Tests(2) {
 }
 
 ## no critic
-{ package My::CHI; use Mouse; extends 'CHI' }
+{ package My::CHI; use Moose; extends 'CHI' }
 
 sub test_driver_properties : Tests(2) {
     my $self  = shift;

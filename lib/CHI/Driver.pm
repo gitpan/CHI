@@ -3,12 +3,10 @@ use Carp;
 use CHI::CacheObject;
 use CHI::Serializer::Storable;
 use CHI::Util qw(parse_duration dp);
-use Hash::MoreUtils qw(slice_exists);
-use List::MoreUtils qw(pairwise);
 use Module::Load::Conditional qw(can_load);
-use Mouse;
-use Mouse::Util::TypeConstraints;
-use Scalar::Util qw(blessed weaken);
+use Moose;
+use Moose::Util::TypeConstraints;
+use Scalar::Util qw(blessed);
 use Time::Duration;
 use strict;
 use warnings;
@@ -67,11 +65,7 @@ my %common_params =
 #
 my @subcache_types = qw(l1_cache mirror_cache);
 
-# List of parameters that are automatically inherited by a subcache
-#
-my @subcache_inherited_param_keys = (
-    qw(expires_at expires_in expires_variance namespace on_get_error on_set_error)
-);
+sub driver_class { my $self = shift; return ref($self) }
 
 sub non_common_constructor_params {
     my ( $class, $params ) = @_;
@@ -135,19 +129,11 @@ sub BUILD {
     #
     foreach my $subcache_type (@subcache_types) {
         if ( my $subcache_params = $params->{$subcache_type} ) {
-            my $chi_root_class = $self->chi_root_class;
-            my %inherited_params =
-              slice_exists( $params, @subcache_inherited_param_keys );
-            my $default_label = $self->label . ":$subcache_type";
-            my $subcache      = $chi_root_class->new(
-                label => $default_label,
-                %inherited_params, %$subcache_params
-            );
-            $subcache->{subcache_type} = $subcache_type;
-            $subcache->{parent_cache}  = $self;
-            weaken( $subcache->{parent_cache} );
-            $self->{$subcache_type} = $subcache;
-            push( @{ $self->{subcaches} }, $subcache );
+            if ( !@{ $self->{subcaches} } ) {
+                require CHI::Driver::Role::HasSubcaches;
+                CHI::Driver::Role::HasSubcaches->meta->apply($self);
+            }
+            $self->add_subcache( $params, $subcache_type, $subcache_params );
         }
     }
 }
@@ -162,15 +148,6 @@ sub logger {
 sub get {
     my ( $self, $key, %params ) = @_;
     croak "must specify key" unless defined($key);
-    my $l1_cache = $self->{l1_cache};
-
-    # Consult l1 cache first if present
-    #
-    if ( defined($l1_cache) ) {
-        if ( defined( my $result = $l1_cache->get( $key, %params ) ) ) {
-            return $result;
-        }
-    }
 
     # Fetch cache object
     #
@@ -214,20 +191,6 @@ sub get {
         return undef;
     }
 
-    # Success - write back to l1 cache if present, and return result
-    #
-    if ( defined($l1_cache) ) {
-
-        # ** Should call store directly if caches are object-compatible
-        $l1_cache->set(
-            $key,
-            $obj->value,
-            {
-                expires_at       => $obj->expires_at,
-                early_expires_at => $obj->early_expires_at
-            }
-        );
-    }
     $self->_log_get_result( $log, "HIT", $key ) if $log->is_debug;
     return $obj->value;
 }
@@ -341,14 +304,14 @@ sub set {
         return;
     }
 
+    # Log the set
+    #
     my $log = $self->logger();
     if ( $log->is_debug ) {
         my $log_expires_in =
           defined($expires_at) ? ( $expires_at - $created_at ) : undef;
         $self->_log_set_result( $log, $key, $value, $log_expires_in );
     }
-
-    $self->call_method_on_subcaches( 'set', @_ );
 
     return $value;
 }
@@ -381,6 +344,12 @@ sub expire_if {
     else {
         return 1;
     }
+}
+
+sub clear {
+    my ($self) = @_;
+
+    $self->remove_multi( [ $self->get_keys() ] );
 }
 
 sub compute {
@@ -439,12 +408,6 @@ sub remove_multi {
     foreach my $key (@$keys) {
         $self->remove($key);
     }
-}
-
-sub clear {
-    my ($self) = @_;
-
-    $self->remove_multi( [ $self->get_keys() ] );
 }
 
 sub purge {
@@ -511,17 +474,6 @@ sub is_empty {
 
         return $self->escape_for_filename( $self->unescape_for_filename($text) )
           eq $text;
-    }
-}
-
-sub call_method_on_subcaches {
-    my $self      = shift;
-    my $method    = shift;
-    my $subcaches = $self->subcaches;
-    return unless $subcaches;
-
-    foreach my $subcache (@$subcaches) {
-        $subcache->$method(@_);
     }
 }
 
