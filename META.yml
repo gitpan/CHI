@@ -20,6 +20,7 @@ no_index:
     - t
 requires: 
   Any::Moose: 0.07
+  Carp::Assert: 0.20
   Data::UUID: 0
   Digest::JHash: 0
   File::Spec: 0.80
@@ -30,4 +31,4 @@ requires:
   Time::Duration: 1.06
   Time::Duration::Parse: 0.03
   perl: 5.6.0
-version: 0.22
+version: 0.23

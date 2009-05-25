@@ -1,8 +1,11 @@
 package CHI::Driver;
 use Carp;
 use CHI::CacheObject;
+use CHI::Driver::Metacache;
+use CHI::Driver::Role::Universal;
 use CHI::Serializer::Storable;
-use CHI::Util qw(parse_duration dp);
+use CHI::Util
+  qw(has_moose_class parse_duration parse_memory_size require_dynamic);
 use Module::Load::Conditional qw(can_load);
 use Moose;
 use Moose::Util::TypeConstraints;
@@ -13,11 +16,15 @@ use warnings;
 
 type OnError => where { ref($_) eq 'CODE' || /^(?:ignore|warn|die|log)$/ };
 
-subtype Duration => as 'Int' => where { $_ > 0 };
+subtype 'CHI::Duration' => as 'Int' => where { $_ > 0 };
+coerce 'CHI::Duration' => from 'Str' => via { parse_duration($_) };
 
-subtype UnblessedHashRef => as 'HashRef' => where { !blessed($_) };
+subtype 'CHI::MemorySize' => as 'Int' => where { $_ > 0 };
+coerce 'CHI::MemorySize' => from 'Str' => via { parse_memory_size($_) };
 
-coerce 'Duration' => from 'Str' => via { parse_duration($_) };
+subtype 'CHI::UnblessedHashRef' => as 'HashRef' => where { !blessed($_) };
+
+type 'CHI::DiscardPolicy' => where { !ref($_) || ref($_) eq 'CODE' };
 
 my $default_serializer = CHI::Serializer::Storable->new();
 my $data_serializer_loaded =
@@ -32,27 +39,51 @@ coerce 'Serializer' => from 'Str' => via {
 
 use constant Max_Time => 0xffffffff;
 
-has 'chi_root_class' => ( is => 'ro' );
-has 'label'          => ( is => 'rw', builder => '_build_label' );
-has 'expires_at'     => ( is => 'rw', default => Max_Time );
-has 'expires_in'     => ( is => 'rw', isa => 'Duration', coerce => 1 );
-has 'expires_variance' => ( is => 'rw', default => 0.0 );
-has 'l1_cache'         => ( is => 'ro', isa     => 'UnblessedHashRef' );
-has 'mirror_cache'     => ( is => 'ro', isa     => 'UnblessedHashRef' );
+has 'chi_root_class'     => ( is => 'ro' );
+has 'constructor_params' => ( is => 'ro', init_arg => undef );
+has 'driver_class'       => ( is => 'ro' );
+has 'expires_at'         => ( is => 'rw', default => Max_Time );
+has 'expires_in'         => ( is => 'rw', isa => 'CHI::Duration', coerce => 1 );
+has 'expires_variance' => ( is => 'rw', default    => 0.0 );
+has 'label'            => ( is => 'rw', lazy_build => 1 );
+has 'l1_cache'         => ( is => 'ro', isa        => 'CHI::UnblessedHashRef' );
+has 'mirror_cache'     => ( is => 'ro', isa        => 'CHI::UnblessedHashRef' );
 has 'namespace' => ( is => 'ro', isa => 'Str', default => 'Default' );
 has 'on_get_error' => ( is => 'rw', isa => 'OnError', default => 'log' );
 has 'on_set_error' => ( is => 'rw', isa => 'OnError', default => 'log' );
-has 'parent_cache' => ( is => 'ro' );
-has 'serializer'   => (
+has 'parent_cache' => ( is => 'ro', init_arg => undef );
+has 'serializer' => (
     is      => 'ro',
     isa     => 'Serializer',
     coerce  => 1,
     default => sub { $default_serializer }
 );
-has 'short_driver_name' =>
-  ( is => 'ro', builder => '_build_short_driver_name' );
-has 'subcache_type' => ( is => 'ro' );
-has 'subcaches' => ( is => 'ro', default => sub { [] } );
+has 'short_driver_name' => ( is => 'ro', lazy_build => 1 );
+has 'subcache_type'     => ( is => 'ro', init_arg   => undef );
+has 'subcaches' => ( is => 'ro', default => sub { [] }, init_arg => undef );
+has 'is_size_aware' => ( is => 'ro', isa => 'Bool', default => undef );
+has 'metacache' => ( is => 'ro', lazy_build => 1 );
+
+# xx These should go in SizeAware role, but cannot right now because of the way
+# xx we apply role to instance
+has 'max_size' => ( is => 'rw', isa => 'CHI::MemorySize', coerce => 1 );
+has 'max_size_reduction_factor' => ( is => 'rw', isa => 'Num', default => 0.8 );
+has 'discard_policy' => (
+    is      => 'ro',
+    isa     => 'Maybe[CHI::DiscardPolicy]',
+    builder => 'default_discard_policy'
+);
+has 'discard_timeout' => (
+    is      => 'rw',
+    isa     => 'Num',
+    default => 10
+);
+
+# These methods must be implemented by subclass
+foreach my $method (qw(fetch store remove get_keys get_namespaces)) {
+    __PACKAGE__->meta->add_method( $method =>
+          sub { die "method '$method' must be implemented by subclass" } );
+}
 
 __PACKAGE__->meta->make_immutable();
 
@@ -65,8 +96,6 @@ my %common_params =
 #
 my @subcache_types = qw(l1_cache mirror_cache);
 
-sub driver_class { my $self = shift; return ref($self) }
-
 sub non_common_constructor_params {
     my ( $class, $params ) = @_;
 
@@ -76,20 +105,12 @@ sub non_common_constructor_params {
     };
 }
 
-# These methods must be implemented by subclass
-foreach my $method (qw(fetch store remove get_keys get_namespaces)) {
-    no strict 'refs';
-    *{ __PACKAGE__ . "::$method" } =
-      sub { die "method '$method' must be implemented by subclass" }; ## no critic (RequireCarping)
-}
-
 sub declare_unsupported_methods {
     my ( $class, @methods ) = @_;
 
     foreach my $method (@methods) {
-        no strict 'refs';
-        *{ $class . "::$method" } =
-          sub { croak "method '$method' not supported by '$class'" };
+        $class->meta->add_method( $method =>
+              sub { croak "method '$method' not supported by '$class'" } );
     }
 }
 
@@ -107,7 +128,13 @@ sub _build_short_driver_name {
 sub _build_label {
     my ($self) = @_;
 
-    return $self->_build_short_driver_name;
+    return $self->short_driver_name;
+}
+
+sub _build_metacache {
+    my $self = shift;
+
+    return CHI::Driver::Metacache->new( owner_cache => $self );
 }
 
 sub _build_data_serializer {
@@ -124,16 +151,50 @@ sub _build_data_serializer {
 sub BUILD {
     my ( $self, $params ) = @_;
 
+    # Save off constructor params. Used to create metacache, for
+    # example. Hopefully this will not cause circular references...
+    #
+    $self->{constructor_params} = $params;
+
+    # Every Moose driver gets the Universal role
+    #
+    $self->_apply_role( 'CHI::Driver::Role::Universal', 1 );
+
+    # Turn on is_size_aware automatically if max_size is defined
+    #
+    if ( defined( $self->{max_size} ) || defined( $self->{is_size_aware} ) ) {
+        $self->_apply_role( 'CHI::Driver::Role::SizeAware', 0 );
+        $self->{is_size_aware} = 1;
+    }
+
     # Create subcaches as necessary (l1_cache, mirror_cache)
     # Eventually might allow existing caches to be passed
     #
     foreach my $subcache_type (@subcache_types) {
         if ( my $subcache_params = $params->{$subcache_type} ) {
             if ( !@{ $self->{subcaches} } ) {
-                require CHI::Driver::Role::HasSubcaches;
-                CHI::Driver::Role::HasSubcaches->meta->apply($self);
+                $self->_apply_role( 'CHI::Driver::Role::HasSubcaches', 0 );
             }
             $self->add_subcache( $params, $subcache_type, $subcache_params );
+        }
+    }
+}
+
+sub _apply_role {
+    my ( $self, $role, $ignore_error ) = @_;
+
+    if ( !$role->can('meta') ) {
+        require_dynamic($role);
+    }
+    eval { $role->meta->apply($self) };
+    if ($@) {
+        if ( has_moose_class($self) ) {
+            die $@;
+        }
+        else {
+            if ( !$ignore_error ) {
+                die "cannot apply role to non-Moose driver";
+            }
         }
     }
 }
@@ -144,6 +205,8 @@ sub logger {
     ## no critic (ProhibitPackageVars)
     return $CHI::Logger;
 }
+
+sub default_discard_policy { 'arbitrary' }
 
 sub get {
     my ( $self, $key, %params ) = @_;
@@ -316,6 +379,19 @@ sub set {
     return $value;
 }
 
+sub get_keys_iterator {
+    my ($self) = @_;
+
+    my @keys = $self->get_keys();
+    return sub { shift(@keys) };
+}
+
+sub clear {
+    my ($self) = @_;
+
+    $self->remove_multi( [ $self->get_keys() ] );
+}
+
 sub expire {
     my ( $self, $key ) = @_;
     croak "must specify key" unless defined($key);
@@ -344,12 +420,6 @@ sub expire_if {
     else {
         return 1;
     }
-}
-
-sub clear {
-    my ($self) = @_;
-
-    $self->remove_multi( [ $self->get_keys() ] );
 }
 
 sub compute {
@@ -480,7 +550,7 @@ sub is_empty {
 sub is_subcache {
     my ($self) = @_;
 
-    return defined( $self->{subcache_type} );
+    return defined( $self->subcache_type );
 }
 
 sub _set_object {
@@ -488,6 +558,7 @@ sub _set_object {
 
     my $data = $obj->pack_to_data();
     $self->store( $key, $data );
+    return length($data);
 }
 
 sub _log_get_result {
@@ -540,7 +611,7 @@ sub _describe_cache_get {
     my ( $self, $key ) = @_;
 
     return sprintf( "cache get for namespace='%s', key='%s', cache='%s'",
-        $self->{namespace}, $key, $self->{label} );
+        $self->namespace, $key, $self->label );
 }
 
 sub _describe_cache_set {
@@ -548,7 +619,7 @@ sub _describe_cache_set {
 
     return sprintf(
         "cache set for namespace='%s', key='%s', size=%d, expires='%s', cache='%s'",
-        $self->{namespace},
+        $self->namespace,
         $key,
         length($value),
         defined($expires_in)
@@ -556,7 +627,7 @@ sub _describe_cache_set {
             Time::Duration::duration_exact($expires_in)
           )
         : 'never',
-        $self->{label}
+        $self->label
     );
 }
 

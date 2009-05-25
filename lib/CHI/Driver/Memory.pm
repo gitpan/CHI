@@ -1,5 +1,5 @@
 package CHI::Driver::Memory;
-use Carp qw(cluck);
+use Carp qw(cluck croak);
 use Moose;
 use strict;
 use warnings;
@@ -13,55 +13,84 @@ has 'global'    => ( is => 'ro', isa => 'Bool' );
 
 __PACKAGE__->meta->make_immutable();
 
+sub default_discard_policy { 'lru' }
+
 sub BUILD {
     my ( $self, $params ) = @_;
 
     if ( $self->{global} ) {
+        croak "cannot specify both 'datastore' and 'global'"
+          if ( defined( $self->{datastore} ) );
         $self->{datastore} = $Global_Datastore;
     }
     if ( !defined( $self->{datastore} ) ) {
         cluck "must specify either 'datastore' hashref or 'global' flag";
         $self->{datastore} = $Global_Datastore;
     }
-    $self->{datastore}->{ $self->namespace } ||= {};
+    $self->{datastore}->{ $self->namespace }->{values}   ||= {};
+    $self->{datastore}->{ $self->namespace }->{metadata} ||= {};
+    $self->_initialize_namespace_slots();
+}
+
+sub _initialize_namespace_slots {
+    my ($self) = @_;
+
     $self->{datastore_for_namespace} = $self->{datastore}->{ $self->namespace };
+    $self->{values_for_namespace} = $self->{datastore_for_namespace}->{values};
+    $self->{metadata_for_namespace} =
+      $self->{metadata_for_namespace}->{metadata};
 }
 
 sub fetch {
     my ( $self, $key ) = @_;
 
-    return $self->{datastore_for_namespace}->{$key};
+    if ( $self->is_size_aware() ) {
+        $self->{metadata_for_namespace}->{last_used_time}->{$key} = time;
+    }
+    return $self->{values_for_namespace}->{$key};
 }
 
 sub store {
     my ( $self, $key, $data ) = @_;
 
-    $self->{datastore_for_namespace}->{$key} = $data;
+    $self->{values_for_namespace}->{$key} = $data;
 }
 
 sub remove {
     my ( $self, $key ) = @_;
 
-    delete $self->{datastore_for_namespace}->{$key};
+    delete $self->{values_for_namespace}->{$key};
+    delete $self->{metadata_for_namespace}->{$key};
 }
 
 sub clear {
     my ($self) = @_;
 
-    $self->{datastore_for_namespace} =
-      $self->{datastore}->{ $self->namespace } = {};
+    $self->{datastore}->{ $self->namespace } = {};
+    $self->_initialize_namespace_slots();
 }
 
 sub get_keys {
     my ($self) = @_;
 
-    return keys( %{ $self->{datastore_for_namespace} } );
+    return keys( %{ $self->{values_for_namespace} } );
 }
 
 sub get_namespaces {
     my ($self) = @_;
 
     return keys( %{ $self->{datastore} } );
+}
+
+sub discard_policy_lru {
+    my ($self) = @_;
+
+    my $last_used_time = $self->{metadata_for_namespace}->{last_used_time};
+    my @keys_in_lru_order =
+      sort { $last_used_time->{$a} <=> $last_used_time->{$b} } $self->get_keys;
+    return sub {
+        shift(@keys_in_lru_order);
+    };
 }
 
 1;
@@ -128,6 +157,12 @@ specified explicitly (to avoid accidentally sharing the same datastore in
 unrelated code).
 
 =back
+
+=head1 DISCARD POLICY
+
+For L<CHI/SIZE AWARENESS|size aware> caches, this driver implements an 'LRU'
+policy, which discards the least recently used items first. This is the default
+policy.
 
 =head1 SEE ALSO
 

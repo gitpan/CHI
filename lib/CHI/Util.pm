@@ -1,5 +1,5 @@
 package CHI::Util;
-use Carp;
+use Carp qw( croak longmess );
 use Data::Dumper;
 use Data::UUID;
 use File::Spec::Functions qw(catdir catfile);
@@ -10,10 +10,13 @@ use base qw(Exporter);
 
 our @EXPORT_OK = qw(
   dp
+  dps
   dump_one_line
   fast_catdir
   fast_catfile
+  has_moose_class
   parse_duration
+  parse_memory_size
   read_dir
   require_dynamic
   unique_id
@@ -32,6 +35,10 @@ sub _dump_value_with_caller {
 
 sub dp {
     print STDERR _dump_value_with_caller(@_);
+}
+
+sub dps {
+    print STDERR longmess( _dump_value_with_caller(@_) );
 }
 
 sub dump_one_line {
@@ -87,6 +94,28 @@ sub require_dynamic {
     sub fast_catfile {
         return $File_Spec_Using_Unix ? join( "/", @_ ) : catfile(@_);
     }
+}
+
+my %memory_size_units = ( 'k' => 1024, 'm' => 1024 * 1024 );
+
+sub parse_memory_size {
+    my $size = shift;
+    if ( $size =~ /^\d+b?$/ ) {
+        return $size;
+    }
+    elsif ( my ( $quantity, $unit ) = ( $size =~ /^(\d+)\s*([km])b?$/i ) ) {
+        return $quantity * $memory_size_units{ lc($unit) };
+    }
+    else {
+        croak "cannot parse memory size '$size'";
+    }
+}
+
+sub has_moose_class {
+    my ($obj) = @_;
+
+    my $meta = Class::MOP::class_of($obj);
+    return ( defined $meta && $meta->isa("Moose::Meta::Class") );
 }
 
 1;
