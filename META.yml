@@ -7,6 +7,7 @@ build_requires:
   Test::Class: 0
   Test::Deep: 0
   Test::More: 0
+  Test::Warn: 0
 distribution_type: module
 generated_by: Module::Install version 0.68
 license: perl
@@ -19,7 +20,6 @@ no_index:
     - inc
     - t
 requires: 
-  Any::Moose: 0.07
   Carp::Assert: 0.20
   Data::UUID: 0
   Digest::JHash: 0
@@ -27,8 +27,9 @@ requires:
   Hash::MoreUtils: 0
   List::MoreUtils: 0.13
   Module::Load::Conditional: 0
+  Moose: 0.66
   Storable: 0
   Time::Duration: 1.06
   Time::Duration::Parse: 0.03
   perl: 5.6.0
-version: 0.24
+version: 0.241
