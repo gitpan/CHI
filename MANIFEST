@@ -23,7 +23,8 @@ lib/CHI/Driver/Memory.pm
 lib/CHI/Driver/Metacache.pm
 lib/CHI/Driver/Null.pm
 lib/CHI/Driver/Role/HasSubcaches.pm
-lib/CHI/Driver/Role/SizeAware.pm
+lib/CHI/Driver/Role/IsSizeAware.pm
+lib/CHI/Driver/Role/IsSubcache.pm
 lib/CHI/Driver/Role/Universal.pm
 lib/CHI/NullLogger.pm
 lib/CHI/Serializer/Storable.pm
@@ -55,6 +56,7 @@ lib/CHI/Test/Driver/Writeonly.pm
 lib/CHI/Test/InternalOnly.pm
 lib/CHI/Test/Logger.pm
 lib/CHI/Test/Util.pm
+lib/CHI/Types.pm
 lib/CHI/Util.pm
 LICENSE
 Makefile.PL

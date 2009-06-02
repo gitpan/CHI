@@ -2,11 +2,10 @@ package CHI;
 use 5.006;
 use Carp;
 use CHI::NullLogger;
-use CHI::Util qw(require_dynamic);
 use strict;
 use warnings;
 
-our $VERSION = '0.241';
+our $VERSION = '0.25';
 
 our $Logger = CHI::NullLogger->new();    ## no critic
 
@@ -18,8 +17,10 @@ sub logger {
     return $Logger;
 }
 
+my %final_class_seen;
+
 sub new {
-    my ( $class, %params ) = @_;
+    my ( $chi_root_class, %params ) = @_;
 
     my $driver_class;
     if ( my $driver = delete( $params{driver} ) ) {
@@ -34,11 +35,37 @@ sub new {
     # Load class if it hasn't been loaded or defined in-line already
     #
     unless ( $driver_class->can('fetch') ) {
-        require_dynamic($driver_class);
+        Class::MOP::load_class($driver_class);
     }
 
-    return $driver_class->new(
-        chi_root_class => $class,
+    # Select roles depending on presence of certain arguments. Everyone gets
+    # the Universal role.
+    #
+    my @roles = ('CHI::Driver::Role::Universal');
+    if ( exists( $params{max_size} ) || exists( $params{is_size_aware} ) ) {
+        push( @roles, 'CHI::Driver::Role::IsSizeAware' );
+    }
+    if ( exists( $params{l1_cache} ) || exists( $params{mirror_cache} ) ) {
+        push( @roles, 'CHI::Driver::Role::HasSubcaches' );
+    }
+    if ( $params{is_subcache} ) {
+        push( @roles, 'CHI::Driver::Role::IsSubcache' );
+    }
+
+    # Select a final class based on the driver class and roles, creating it
+    # if necessary - adapted from MooseX::Traits
+    #
+    my $meta = Moose::Meta::Class->create_anon_class(
+        superclasses => [$driver_class],
+        roles        => \@roles,
+        cache        => 1
+    );
+    my $final_class = $meta->name;
+    $meta->add_method( 'meta' => sub { $meta } )
+      if !$final_class_seen{$final_class}++;
+
+    return $final_class->new(
+        chi_root_class => $chi_root_class,
         driver_class   => $driver_class,
         %params
     );
@@ -549,10 +576,7 @@ e.g.
     
 =item Standard read-only accessors
 
-    l1_cache
-    mirror_cache
     namespace
-    parent_cache
     serializer
     
 =back
@@ -650,6 +674,8 @@ As illustrated above, you create subcaches by passing the C<l1_cache> and/or
 C<mirror_cache> option to the CHI constructor. These options, in turn, should
 contain a hash of options to create the subcache with.
 
+The cache containing the subcache is called the I<parent cache>.
+
 The following options are automatically inherited by the subcache from the
 parent cache, if they are not specified explicitly:
 
@@ -708,35 +734,48 @@ have its own subcaches, and so on. e.g.
         }
     );
 
-=head2 Subcache-related methods
+=head2 Methods for parent caches
 
 =over
 
+=item has_subcaches( )
+
+Returns a boolean indicating whether this cache has subcaches.
+
 =item l1_cache( )
 
-Returns the L1 cache for this cache, if any.
+Returns the L1 cache for this cache, if any. Can only be called if
+I<has_subcaches> is true.
 
 =item mirror_cache( )
 
-Returns the mirror cache for this cache, if any.
+Returns the mirror cache for this cache, if any. Can only be called if
+I<has_subcaches> is true.
 
 =item subcaches( )
 
-Returns the subcaches for this cache, if any. Order is arbitrary.
+Returns the subcaches for this cache, in arbitrary order. Can only be called if
+I<has_subcaches> is true.
+
+=back
+
+=head2 Methods for subcaches
+
+=over
 
 =item is_subcache( )
 
-If this is a subcache, returns true, otherwise false.
+Returns a boolean indicating whether this is a subcache.
 
 =item subcache_type( )
 
-If this is a subcache, returns the type of subcache as a string, e.g.
-'l1_cache' or 'mirror_cache', otherwise undef.
+Returns the type of subcache as a string, e.g. 'l1_cache' or 'mirror_cache'.
+Can only be called if I<is_subcache> is true.
 
 =item parent_cache( )
 
-If this is a subcache, returns the parent cache (weakened to prevent circular
-reference), otherwise undef.
+Returns the parent cache (weakened to prevent circular reference).  Can only be
+called if I<is_subcache> is true.
 
 =back
 
