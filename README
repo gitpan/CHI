@@ -21,9 +21,6 @@ SYNOPSIS
         my $cache = CHI->new( driver => 'DBI',
             dbh => $dbh
         );
-
-        # (These drivers coming soon...)
-        #
         my $cache = CHI->new( driver => 'BerkeleyDB',
             root_dir => '/path/to/root'
         );
@@ -127,7 +124,11 @@ AVAILABILITY OF DRIVERS
 
     *   CHI::Driver::Memcached - Distributed memory-based cache
 
-    *   CHI::Driver::DBI - Database-based cache
+    *   CHI::Driver::MemcachedFast - Same as above, presumably faster client
+
+    *   CHI::Driver::DBI - Cache in any DBI-supported database
+
+    *   CHI::Driver::FastMmap - Cache in BerkeleyDB files
 
     This list is likely incomplete. A complete set of drivers can be found
     on CPAN by searching for "CHI::Driver".

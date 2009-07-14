@@ -52,6 +52,7 @@ lib/CHI/Test.pm
 lib/CHI/Test/Class.pm
 lib/CHI/Test/Driver/NonMoose.pm
 lib/CHI/Test/Driver/Readonly.pm
+lib/CHI/Test/Driver/Role/CheckKeyValidity.pm
 lib/CHI/Test/Driver/Writeonly.pm
 lib/CHI/Test/InternalOnly.pm
 lib/CHI/Test/Logger.pm

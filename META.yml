@@ -29,7 +29,8 @@ requires:
   Module::Load::Conditional: 0
   Moose: 0.66
   Storable: 0
+  Task::Weaken: 0
   Time::Duration: 1.06
   Time::Duration::Parse: 0.03
   perl: 5.6.0
-version: 0.25
+version: 0.26

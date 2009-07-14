@@ -5,7 +5,7 @@ use CHI::NullLogger;
 use strict;
 use warnings;
 
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 
 our $Logger = CHI::NullLogger->new();    ## no critic
 
@@ -42,6 +42,9 @@ sub new {
     # the Universal role.
     #
     my @roles = ('CHI::Driver::Role::Universal');
+    if ( exists( $params{roles} ) ) {
+        push( @roles, @{ delete( $params{roles} ) } );
+    }
     if ( exists( $params{max_size} ) || exists( $params{is_size_aware} ) ) {
         push( @roles, 'CHI::Driver::Role::IsSizeAware' );
     }
@@ -102,9 +105,6 @@ CHI -- Unified cache interface
     my $cache = CHI->new( driver => 'DBI',
         dbh => $dbh
     );
-
-    # (These drivers coming soon...)
-    #
     my $cache = CHI->new( driver => 'BerkeleyDB',
         root_dir => '/path/to/root'
     );
@@ -868,7 +868,16 @@ cache
 
 =item *
 
-L<CHI::Driver::DBI|CHI::Driver::DBI> - Database-based cache
+L<CHI::Driver::MemcachedFast|CHI::Driver::MemcachedFast> - Same as above,
+presumably faster client
+
+=item *
+
+L<CHI::Driver::DBI|CHI::Driver::DBI> - Cache in any DBI-supported database
+
+=item *
+
+L<CHI::Driver::FastMmap|CHI::Driver::BerkeleyDB> - Cache in BerkeleyDB files
 
 =back
 
