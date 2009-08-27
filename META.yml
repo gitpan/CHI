@@ -1,31 +1,45 @@
---- 
-abstract: Unified cache interface
-author: 
-  - Jonathan Swartz <swartz@pobox.com>
-build_requires: 
+---
+abstract: 'Unified cache interface'
+author:
+  - 'Jonathan Swartz <swartz@pobox.com>'
+build_requires:
   Date::Parse: 0
+  ExtUtils::MakeMaker: 6.42
   Test::Class: 0
   Test::Deep: 0
+  Test::Log::Dispatch: 0
   Test::More: 0
   Test::Warn: 0
+configure_requires:
+  ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: Module::Install version 0.68
+generated_by: 'Module::Install version 0.91'
 license: perl
-meta-spec: 
-  url: http://module-build.sourceforge.net/META-spec-v1.3.html
-  version: 1.3
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
 name: CHI
-no_index: 
-  directory: 
+no_index:
+  directory:
     - inc
+    - lib/CHI/Test
+    - lib/CHI/t
     - t
-requires: 
+    - xt
+  package:
+    - CHI::Constants
+    - CHI::Serializer::Storable
+    - CHI::Test
+    - CHI::Types
+    - CHI::Util
+requires:
   Carp::Assert: 0.20
   Data::UUID: 0
   Digest::JHash: 0
   File::Spec: 0.80
   Hash::MoreUtils: 0
   List::MoreUtils: 0.13
+  Log::Any: 0.03
   Module::Load::Conditional: 0
   Moose: 0.66
   Storable: 0
@@ -33,4 +47,6 @@ requires:
   Time::Duration: 1.06
   Time::Duration::Parse: 0.03
   perl: 5.6.0
-version: 0.26
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.27

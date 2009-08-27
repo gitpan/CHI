@@ -4,6 +4,7 @@ inc/Module/Install.pm
 inc/Module/Install/AutoInstall.pm
 inc/Module/Install/Base.pm
 inc/Module/Install/Can.pm
+inc/Module/Install/ExtraTests.pm
 inc/Module/Install/Fetch.pm
 inc/Module/Install/Include.pm
 inc/Module/Install/Makefile.pm
@@ -54,8 +55,6 @@ lib/CHI/Test/Driver/NonMoose.pm
 lib/CHI/Test/Driver/Readonly.pm
 lib/CHI/Test/Driver/Role/CheckKeyValidity.pm
 lib/CHI/Test/Driver/Writeonly.pm
-lib/CHI/Test/InternalOnly.pm
-lib/CHI/Test/Logger.pm
 lib/CHI/Test/Util.pm
 lib/CHI/Types.pm
 lib/CHI/Util.pm
@@ -65,9 +64,6 @@ MANIFEST			This list of files
 META.yml
 README
 t/00-load.t
-t/01-tidy.t
-t/02-critic.t
-t/03-pod.t
 t/Constants.t
 t/Driver-CacheCache.t
 t/Driver-FastMmap.t
@@ -80,10 +76,15 @@ t/Driver-Subcache-l1_cache.t
 t/Driver-Subcache-mirror_cache.t
 t/GetError.t
 t/Initialize.t
-t/no-data-serializer.t
-t/RequiredModules.t
 t/Sanity.t
 t/SetError.t
 t/Subcache.t
 t/Subclass.t
 t/Util.t
+xt/data/cache/critic.dat
+xt/data/cache/tidy.dat
+xt/release/01-tidy.t
+xt/release/02-critic.t
+xt/release/03-pod.t
+xt/release/no-data-serializer.t
+xt/release/RequiredModules.t
