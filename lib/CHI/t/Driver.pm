@@ -2,10 +2,9 @@ package CHI::t::Driver;
 use strict;
 use warnings;
 use CHI::Test;
-use CHI::Test::Logger;
 use CHI::Test::Util
   qw(activate_test_logger cmp_bool is_between random_string skip_until);
-use CHI::Util qw(dump_one_line dp);
+use CHI::Util qw(dump_one_line);
 use File::Temp qw(tempdir);
 use Module::Load::Conditional qw(can_load check_install);
 use Scalar::Util qw(weaken);
@@ -497,8 +496,10 @@ sub test_serialize : Tests {
 sub test_serializers : Tests {
     my ($self) = @_;
 
-    return 'Data::Serializer not installed'
-      unless can_load( modules => { 'Data::Serializer' => undef } );
+    unless ( can_load( modules => { 'Data::Serializer' => 0 } ) ) {
+        $self->num_tests(1);
+        return 'Data::Serializer not installed';
+    }
 
     my @modes    = (qw(string hash object));
     my @variants = (qw(Storable Data::Dumper YAML));

@@ -29,6 +29,7 @@ lib/CHI/Driver/Role/IsSubcache.pm
 lib/CHI/Driver/Role/Universal.pm
 lib/CHI/NullLogger.pm
 lib/CHI/Serializer/Storable.pm
+lib/CHI/t/Bugs.pm
 lib/CHI/t/Constants.pm
 lib/CHI/t/Driver.pm
 lib/CHI/t/Driver/CacheCache.pm
@@ -64,6 +65,7 @@ MANIFEST			This list of files
 META.yml
 README
 t/00-load.t
+t/Bugs.t
 t/Constants.t
 t/Driver-CacheCache.t
 t/Driver-FastMmap.t

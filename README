@@ -8,7 +8,7 @@ SYNOPSIS
         #
         my $cache = CHI->new( driver => 'Memory' );
         my $cache = CHI->new( driver => 'File',
-            cache_root => '/path/to/root'
+            root_dir => '/path/to/root'
         );
         my $cache = CHI->new( driver => 'FastMmap',
             root_dir   => '/path/to/root',

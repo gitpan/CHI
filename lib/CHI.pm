@@ -5,7 +5,7 @@ use CHI::NullLogger;
 use strict;
 use warnings;
 
-our $VERSION = '0.27';
+our $VERSION = '0.28';
 
 my %final_class_seen;
 
@@ -87,7 +87,7 @@ CHI -- Unified cache interface
     #
     my $cache = CHI->new( driver => 'Memory' );
     my $cache = CHI->new( driver => 'File',
-        cache_root => '/path/to/root'
+        root_dir => '/path/to/root'
     );
     my $cache = CHI->new( driver => 'FastMmap',
         root_dir   => '/path/to/root',
@@ -724,7 +724,7 @@ have its own subcaches, and so on. e.g.
         servers  => [ "10.0.0.15:11211", "10.0.0.15:11212" ],
         l1_cache => {
             driver     => 'File',
-            cache_root => '/path/to/root',
+            root_dir   => '/path/to/root',
             l1_cache   => { driver => 'Memory' }
         }
     );
@@ -887,12 +887,11 @@ developing new drivers.
 
 =head1 LOGGING
 
-C<Server::Control> uses L<Log::Any|Log::Any> for logging, so you have control
-over where logs will be sent, if anywhere. See L<Log::Any|Log::Any>
-documentation for details.
+C<CHI> uses L<Log::Any|Log::Any> for logging events. For example, a debug log
+message is sent for every cache get and set.
 
-If you have activated a logger, CHI will log events at various levels - for
-example, a debug log message for every cache get and set.
+See L<Log::Any|Log::Any> documentation for how to control where logs get sent,
+if anywhere.
 
 =for readme continue
 
