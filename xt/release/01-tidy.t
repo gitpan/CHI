@@ -18,7 +18,7 @@ use Perl::Tidy 20071205;
 use Pod::Tidy 0.10;
 
 my $root   = dirname( dirname( dirname( realpath($0) ) ) );
-my $rcfile = "$root/perltidyrc";
+my $rcfile = "$root/.perltidyrc";
 
 my @files;
 find(
@@ -40,7 +40,7 @@ sub sig {
 my $cache = CHI->new(
     driver    => 'FastMmap',
     root_dir  => "$root/data/cache",
-    namespace => 'tidy',
+    namespace => '01-tidy.t',
 );
 
 my $tidied = 0;

@@ -5,7 +5,7 @@ use CHI::NullLogger;
 use strict;
 use warnings;
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 
 my %final_class_seen;
 
@@ -85,7 +85,7 @@ CHI -- Unified cache interface
 
     # Choose a standard driver
     #
-    my $cache = CHI->new( driver => 'Memory' );
+    my $cache = CHI->new( driver => 'Memory', global => 1 );
     my $cache = CHI->new( driver => 'File',
         root_dir => '/path/to/root'
     );

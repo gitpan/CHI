@@ -825,7 +825,7 @@ sub _test_logging_with_l1_cache {
     my $log = activate_test_logger();
     my ( $key, $value ) = $self->kvpair();
 
-    my $driver = $cache->short_driver_name;
+    my $driver = $cache->label;
 
     my $miss_not_in_cache = 'MISS \(not in cache\)';
     my $miss_expired      = 'MISS \(expired\)';
@@ -877,7 +877,7 @@ sub _test_logging_with_mirror_cache {
     my $log = activate_test_logger();
     my ( $key, $value ) = $self->kvpair();
 
-    my $driver = $cache->short_driver_name;
+    my $driver = $cache->label;
 
     my $miss_not_in_cache = 'MISS \(not in cache\)';
     my $miss_expired      = 'MISS \(expired\)';
@@ -1003,22 +1003,31 @@ sub _test_common_subcache_features {
     $test_remove_method->( 'clear', sub { $cache->clear() } );
 }
 
+sub _verify_cache_is_cleared {
+    my ( $self, $cache, $desc ) = @_;
+
+    cmp_deeply( [ $cache->get_keys ], [], "get_keys ($desc)" );
+    is( scalar( $cache->get_keys ), 0, "scalar(get_keys) = 0 ($desc)" );
+    while ( my ( $keyname, $key ) = each( %{ $self->{keys} } ) ) {
+        ok( !defined $cache->get($key),
+            "key '$keyname' no longer defined ($desc)" );
+    }
+}
+
 sub test_clear : Tests {
     my $self   = shift;
-    my $cache  = $self->{cache};
+    my $cache  = $self->new_cache( namespace => 'name' );
     my $cache2 = $self->new_cache( namespace => 'other' );
-    $self->num_tests( $self->{key_count} + 3 );
+    my $cache3 = $self->new_cache( namespace => 'name' );
+    $self->num_tests( $self->{key_count} * 2 + 5 );
 
     if ( $self->supports_clear() ) {
         $self->set_some_keys($cache);
         $self->set_some_keys($cache2);
         $cache->clear();
-        cmp_deeply( [ $cache->get_keys ], [], "get_keys after clear" );
-        is( scalar( $cache->get_keys ), 0, "scalar(get_keys) = 0 after clear" );
-        while ( my ( $keyname, $key ) = each( %{ $self->{keys} } ) ) {
-            ok( !defined $cache->get($key),
-                "key '$keyname' no longer defined after clear" );
-        }
+
+        $self->_verify_cache_is_cleared( $cache,  'cache after clear' );
+        $self->_verify_cache_is_cleared( $cache3, 'cache3 after clear' );
         cmp_set(
             [ $cache2->get_keys ],
             [ values( %{ $self->{keys} } ) ],
@@ -1042,7 +1051,7 @@ sub test_logging : Test(10) {
     my $log = activate_test_logger();
     my ( $key, $value ) = $self->kvpair();
 
-    my $driver = $cache->short_driver_name;
+    my $driver = $cache->label;
 
     # Multilevel cache logs less details about misses
     my $miss_not_in_cache =
