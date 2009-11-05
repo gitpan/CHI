@@ -1,6 +1,7 @@
 package CHI::Driver::Role::HasSubcaches;
 use Moose::Role;
 use Hash::MoreUtils qw(slice_exists);
+use Log::Any qw($log);
 use Scalar::Util qw(weaken);
 use strict;
 use warnings;
@@ -31,13 +32,27 @@ after 'BUILD_roles' => sub {
 # List of parameters that are automatically inherited by a subcache
 #
 my @subcache_inherited_param_keys = (
-    qw(expires_at expires_in expires_variance namespace on_get_error on_set_error)
+    qw(expires_at expires_in expires_variance namespace on_get_error on_set_error serializer)
 );
+
+# List of parameters that cannot be overriden in a subcache
+#
+my @subcache_nonoverride_param_keys =
+  (qw(expires_at expires_in expires_variance serializer));
 
 # Add a subcache with the specified type and params - called from BUILD
 #
 sub add_subcache {
     my ( $self, $params, $subcache_type, $subcache_params ) = @_;
+
+    if ( my %nonoverride_params =
+        slice_exists( $subcache_params, @subcache_nonoverride_param_keys ) )
+    {
+        my @nonoverride_keys = sort keys(%nonoverride_params);
+        warn sprintf( "cannot override these keys in a subcache: %s",
+            join( ", ", @nonoverride_keys ) );
+        delete( @$subcache_params{@nonoverride_keys} );
+    }
 
     my $chi_root_class = $self->chi_root_class;
     my %inherited_params =
@@ -57,7 +72,7 @@ sub add_subcache {
 
 # Call these methods first on the main cache, then on any subcaches.
 #
-foreach my $method (qw(clear expire expire_if purge remove set)) {
+foreach my $method (qw(clear expire expire_if purge remove)) {
     after $method => sub {
         my $self      = shift;
         my $subcaches = $self->subcaches;
@@ -66,6 +81,17 @@ foreach my $method (qw(clear expire expire_if purge remove set)) {
         }
     };
 }
+
+after 'set_object' => sub {
+    my ( $self, $key, $obj ) = @_;
+
+    my $subcaches = $self->subcaches;
+    foreach my $subcache (@$subcaches) {
+        $subcache->set_object( $key, $obj );
+        $subcache->_log_set_result( $log, $obj )
+          if $log->is_debug;
+    }
+};
 
 around 'get' => sub {
     my $orig     = shift;
@@ -83,19 +109,17 @@ around 'get' => sub {
             return $value;
         }
         else {
-            my $value = $self->$orig( @_, obj_ref => \my $obj );
+            my ( $key, %params ) = @_;
+            $params{obj_ref} ||= \my $obj_store;
+            my $value = $self->$orig( $key, %params );
             if ( defined($value) ) {
 
-                # If found in primary cache, write back to l1 cache
+                # If found in primary cache, write back to l1 cache. Use same $obj,
+                # meaning same metadata and serialization.
                 #
                 my $key = $_[0];
-                $l1_cache->set(
-                    $key, $value,
-                    {
-                        expires_at       => $obj->expires_at,
-                        early_expires_at => $obj->early_expires_at
-                    }
-                );
+                my $obj = ${ $params{obj_ref} };
+                $l1_cache->set_object( $key, $obj );
             }
             return $value;
         }

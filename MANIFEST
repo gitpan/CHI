@@ -88,5 +88,6 @@ xt/data/cache/tidy.dat
 xt/release/01-tidy.t
 xt/release/02-critic.t
 xt/release/03-pod.t
+xt/release/file-digest.t
 xt/release/no-data-serializer.t
 xt/release/RequiredModules.t

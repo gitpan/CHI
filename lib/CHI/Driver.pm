@@ -1,6 +1,7 @@
 package CHI::Driver;
 use Carp;
 use CHI::CacheObject;
+use CHI::Constants qw(CHI_Max_Time);
 use CHI::Driver::Metacache;
 use CHI::Driver::Role::Universal;
 use CHI::Serializer::Storable;
@@ -16,12 +17,10 @@ use warnings;
 
 my $default_serializer = CHI::Serializer::Storable->new();
 
-use constant Max_Time => 0xffffffff;
-
 has 'chi_root_class'     => ( is => 'ro' );
 has 'constructor_params' => ( is => 'ro', init_arg => undef );
 has 'driver_class'       => ( is => 'ro' );
-has 'expires_at'         => ( is => 'rw', default => Max_Time );
+has 'expires_at'         => ( is => 'rw', default => CHI_Max_Time );
 has 'expires_in' => ( is => 'rw', isa => 'CHI::Types::Duration', coerce => 1 );
 has 'expires_variance' => ( is => 'rw', default => 0.0 );
 has 'has_subcaches' =>
@@ -138,8 +137,7 @@ sub get {
           if $log->is_debug;
         return undef;
     }
-    my $obj =
-      CHI::CacheObject->unpack_from_data( $key, $data, $self->serializer );
+    my $obj = $self->unpack_from_data( $key, $data );
     if ( defined( my $obj_ref = $params{obj_ref} ) ) {
         $$obj_ref = $obj;
     }
@@ -160,7 +158,7 @@ sub get {
             my $busy_lock_time = $time + parse_duration($busy_lock);
             $obj->set_early_expires_at($busy_lock_time);
             $obj->set_expires_at($busy_lock_time);
-            $self->_set_object( $key, $obj );
+            $self->set_object( $key, $obj );
         }
 
         return undef;
@@ -170,13 +168,18 @@ sub get {
     return $obj->value;
 }
 
+sub unpack_from_data {
+    my ( $self, $key, $data ) = @_;
+
+    return CHI::CacheObject->unpack_from_data( $key, $data, $self->serializer );
+}
+
 sub get_object {
     my ( $self, $key ) = @_;
     croak "must specify key" unless defined($key);
 
     my $data = $self->fetch($key) or return undef;
-    my $obj =
-      CHI::CacheObject->unpack_from_data( $key, $data, $self->serializer );
+    my $obj = $self->unpack_from_data( $key, $data );
     return $obj;
 }
 
@@ -226,6 +229,7 @@ sub _default_set_options {
 sub set {
     my $self = shift;
     my ( $key, $value, $options ) = @_;
+
     croak "must specify key" unless defined($key);
     return unless defined($value);
 
@@ -237,7 +241,7 @@ sub set {
     else {
         if ( !ref($options) ) {
             if ( $options eq 'never' ) {
-                $options = { expires_at => Max_Time };
+                $options = { expires_at => CHI_Max_Time };
             }
             elsif ( $options eq 'now' ) {
                 $options = { expires_in => 0 };
@@ -249,6 +253,12 @@ sub set {
         $options = { %{ $self->_default_set_options }, %$options };
     }
 
+    $self->set_with_options( $key, $value, $options );
+}
+
+sub set_with_options {
+    my ( $self, $key, $value, $options ) = @_;
+
     # Determine early and final expiration times
     #
     my $time = $Test_Time || time();
@@ -259,7 +269,7 @@ sub set {
       : $options->{expires_at};
     my $early_expires_at =
         defined( $options->{early_expires_at} ) ? $options->{early_expires_at}
-      : ( $expires_at == Max_Time )             ? Max_Time
+      : ( $expires_at == CHI_Max_Time )         ? CHI_Max_Time
       : $expires_at -
       ( ( $expires_at - $time ) * $options->{expires_variance} );
 
@@ -271,20 +281,13 @@ sub set {
     if ( defined( my $obj_ref = $options->{obj_ref} ) ) {
         $$obj_ref = $obj;
     }
-    eval { $self->_set_object( $key, $obj ) };
-    if ( my $error = $@ ) {
-        my $log_expires_in =
-          defined($expires_at) ? ( $expires_at - $created_at ) : undef;
-        $self->_handle_set_error( $error, $key, $value, $log_expires_in );
-        return;
-    }
+    if ( $self->set_object( $key, $obj ) ) {
 
-    # Log the set
-    #
-    if ( $log->is_debug ) {
-        my $log_expires_in =
-          defined($expires_at) ? ( $expires_at - $created_at ) : undef;
-        $self->_log_set_result( $log, $key, $value, $log_expires_in );
+        # Log the set
+        #
+        if ( $log->is_debug ) {
+            $self->_log_set_result( $log, $obj );
+        }
     }
 
     return $value;
@@ -312,7 +315,7 @@ sub expire {
         my $expires_at = $time - 1;
         $obj->set_early_expires_at($expires_at);
         $obj->set_expires_at($expires_at);
-        $self->_set_object( $key, $obj );
+        $self->set_object( $key, $obj );
     }
 }
 
@@ -458,12 +461,16 @@ sub is_empty {
     }
 }
 
-sub _set_object {
+sub set_object {
     my ( $self, $key, $obj ) = @_;
 
     my $data = $obj->pack_to_data();
-    $self->store( $key, $data );
-    return length($data);
+    eval { $self->store( $key, $data ) };
+    if ( my $error = $@ ) {
+        $self->_handle_set_error( $error, $obj );
+        return 0;
+    }
+    return 1;
 }
 
 sub _log_get_result {
@@ -490,13 +497,13 @@ sub _handle_get_error {
 }
 
 sub _handle_set_error {
-    my $self  = shift;
-    my $error = shift;
-    my $key   = $_[0];
+    my ( $self, $error, $obj ) = @_;
 
     my $msg =
-      sprintf( "error during %s: %s", $self->_describe_cache_set(@_), $error );
-    $self->_dispatch_error_msg( $msg, $error, $self->on_set_error(), $key );
+      sprintf( "error during %s: %s", $self->_describe_cache_set($obj),
+        $error );
+    $self->_dispatch_error_msg( $msg, $error, $self->on_set_error(),
+        $obj->key );
 }
 
 sub _dispatch_error_msg {
@@ -520,20 +527,22 @@ sub _describe_cache_get {
 }
 
 sub _describe_cache_set {
-    my ( $self, $key, $value, $expires_in ) = @_;
+    my ( $self, $obj ) = @_;
 
-    return sprintf(
-        "cache set for namespace='%s', key='%s', size=%d, expires='%s', cache='%s'",
-        $self->namespace,
-        $key,
-        length($value),
-        defined($expires_in)
-        ? Time::Duration::concise(
-            Time::Duration::duration_exact($expires_in)
-          )
-        : 'never',
-        $self->label
+    my $expires_str = (
+        ( $obj->expires_at == CHI_Max_Time )
+        ? 'never'
+        : Time::Duration::concise(
+            Time::Duration::duration_exact(
+                $obj->expires_at - $obj->created_at
+            )
+        )
     );
+
+    return
+      sprintf(
+        "cache set for namespace='%s', key='%s', size=%d, expires='%s', cache='%s'",
+        $self->namespace, $obj->key, $obj->size, $expires_str, $self->label );
 }
 
 1;

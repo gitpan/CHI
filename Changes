@@ -2,6 +2,17 @@ Revision history for CHI
 
 ** denotes an incompatible change
 
+0.30  Nov 5, 2009
+
+* Fixes
+  - Fix bug with size-aware L1 cache not keeping track of size
+  - Fix description of never-expiring set in logs and errors
+
+* Improvements
+  - Add file_digest and file_extension options to File driver
+  - Improve l1 cache performance by reusing packed CacheObject data
+  - Document options that cannot be overriden by subcache, and warn if user tries to override these
+
 0.29  Oct 14, 2009
 
 * Fixes
