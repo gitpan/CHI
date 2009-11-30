@@ -5,7 +5,7 @@ use CHI::NullLogger;
 use strict;
 use warnings;
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 
 my %final_class_seen;
 
@@ -863,12 +863,9 @@ The following drivers are currently available as separate CPAN distributions:
 =item *
 
 L<CHI::Driver::Memcached|CHI::Driver::Memcached> - Distributed memory-based
-cache
-
-=item *
-
-L<CHI::Driver::MemcachedFast|CHI::Driver::MemcachedFast> - Same as above,
-presumably faster client
+cache (works with L<Cache::Memcached|Cache::Memcached>,
+L<Cache::Memcached::Fast|Cache::Memcached::Fast>, and
+L<Cache::Memcached::libmemcached|Cache::Memcached::libmemcached>)
 
 =item *
 

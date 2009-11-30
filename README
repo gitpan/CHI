@@ -84,9 +84,9 @@ AVAILABILITY OF DRIVERS
     The following drivers are currently available as separate CPAN
     distributions:
 
-    *   CHI::Driver::Memcached - Distributed memory-based cache
-
-    *   CHI::Driver::MemcachedFast - Same as above, presumably faster client
+    *   CHI::Driver::Memcached - Distributed memory-based cache (works with
+        Cache::Memcached, Cache::Memcached::Fast, and
+        Cache::Memcached::libmemcached)
 
     *   CHI::Driver::DBI - Cache in any DBI-supported database
 
