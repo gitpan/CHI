@@ -30,9 +30,10 @@ has 'has_subcaches' =>
   ( is => 'ro', isa => 'Bool', default => undef, init_arg => undef );
 has 'is_size_aware' => ( is => 'ro', isa => 'Bool', default => undef );
 has 'is_subcache'   => ( is => 'ro', isa => 'Bool', default => undef );
-has 'label'     => ( is => 'rw', lazy_build => 1 );
-has 'metacache' => ( is => 'ro', lazy_build => 1 );
-has 'namespace' => ( is => 'ro', isa        => 'Str', default => 'Default' );
+has 'label'           => ( is => 'rw', lazy_build => 1 );
+has 'max_build_depth' => ( is => 'ro', default    => 8 );
+has 'metacache'       => ( is => 'ro', lazy_build => 1 );
+has 'namespace' => ( is => 'ro', isa => 'Str', default => 'Default' );
 has 'on_get_error' =>
   ( is => 'rw', isa => 'CHI::Types::OnError', default => 'log' );
 has 'on_set_error' =>
@@ -81,9 +82,16 @@ sub declare_unsupported_methods {
 
 # To override time() for testing - must be writable in a dynamically scoped way from tests
 our $Test_Time;    ## no critic (ProhibitPackageVars)
+our $Build_Depth = 0;    ## no critic (ProhibitPackageVars)
 
 sub BUILD {
     my ( $self, $params ) = @_;
+
+    # Ward off infinite build recursion, e.g. from circular subcache configuration.
+    #
+    local $Build_Depth = $Build_Depth + 1;
+    die "$Build_Depth levels of CHI cache creation; infinite recursion?"
+      if ( $Build_Depth > $self->max_build_depth );
 
     # Save off constructor params. Used to create metacache, for
     # example. Hopefully this will not cause circular references...
@@ -91,6 +99,13 @@ sub BUILD {
     $self->{constructor_params} = {%$params};
     foreach my $param (qw(l1_cache mirror_cache parent_cache)) {
         delete( $self->{constructor_params}->{$param} );
+    }
+
+    # If stats enabled, add ns_stats slot for keeping track of stats
+    #
+    my $stats = $self->chi_root_class->stats;
+    if ( $stats->enabled ) {
+        $self->{ns_stats} = $stats->stats_for_driver($self);
     }
 
     # Call BUILD_roles on any of the roles that need initialization.
@@ -126,6 +141,7 @@ sub _build_metacache {
 sub get {
     my ( $self, $key, %params ) = @_;
     croak "must specify key" unless defined($key);
+    my $ns_stats = $self->{ns_stats};
 
     # Fetch cache object
     #
@@ -133,12 +149,14 @@ sub get {
     if ( !defined $data ) {
         $data = eval { $self->fetch($key) };
         if ( my $error = $@ ) {
+            $ns_stats->{'get_errors'}++ if defined($ns_stats);
             $self->_handle_get_error( $error, $key );
             return undef;
         }
     }
 
     if ( !defined $data ) {
+        $ns_stats->{'absent_misses'}++ if defined($ns_stats);
         $self->_log_get_result( $log, "MISS (not in cache)", $key )
           if $log->is_debug;
         return undef;
@@ -153,6 +171,7 @@ sub get {
     my $is_expired = $obj->is_expired()
       || ( defined( $params{expire_if} ) && $params{expire_if}->($obj) );
     if ($is_expired) {
+        $ns_stats->{'expired_misses'}++ if defined($ns_stats);
         $self->_log_get_result( $log, "MISS (expired)", $key )
           if $log->is_debug;
 
@@ -170,6 +189,7 @@ sub get {
         return undef;
     }
 
+    $ns_stats->{'hits'}++ if defined($ns_stats);
     $self->_log_get_result( $log, "HIT", $key ) if $log->is_debug;
     return $obj->value;
 }
@@ -264,6 +284,7 @@ sub set {
 
 sub set_with_options {
     my ( $self, $key, $value, $options ) = @_;
+    my $ns_stats = $self->{ns_stats};
 
     # Determine early and final expiration times
     #
@@ -291,6 +312,11 @@ sub set_with_options {
 
         # Log the set
         #
+        if ( defined($ns_stats) ) {
+            $ns_stats->{'sets'}++;
+            $ns_stats->{'set_key_size'}   += length( $obj->key );
+            $ns_stats->{'set_value_size'} += $obj->size;
+        }
         if ( $log->is_debug ) {
             $self->_log_set_result( $log, $obj );
         }
@@ -473,6 +499,7 @@ sub set_object {
     my $data = $obj->pack_to_data();
     eval { $self->store( $key, $data ) };
     if ( my $error = $@ ) {
+        $self->{ns_stats}->{'set_errors'}++ if defined( $self->{ns_stats} );
         $self->_handle_set_error( $error, $obj );
         return 0;
     }

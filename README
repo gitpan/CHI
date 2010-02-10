@@ -63,7 +63,7 @@ FEATURES
     *   Probabilistic expiration and busy locks, to reduce cache miss
         stampedes
 
-    *   Optional logging of cache activity
+    *   Optional logging and statistics collection of cache activity
 
 AVAILABILITY OF DRIVERS
     The following drivers are currently available as part of this

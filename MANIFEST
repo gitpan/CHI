@@ -27,8 +27,8 @@ lib/CHI/Driver/Role/HasSubcaches.pm
 lib/CHI/Driver/Role/IsSizeAware.pm
 lib/CHI/Driver/Role/IsSubcache.pm
 lib/CHI/Driver/Role/Universal.pm
-lib/CHI/NullLogger.pm
 lib/CHI/Serializer/Storable.pm
+lib/CHI/Stats.pm
 lib/CHI/t/Bugs.pm
 lib/CHI/t/Constants.pm
 lib/CHI/t/Driver.pm
@@ -91,3 +91,4 @@ xt/release/03-pod.t
 xt/release/file-digest.t
 xt/release/no-data-serializer.t
 xt/release/RequiredModules.t
+xt/release/threads.t
