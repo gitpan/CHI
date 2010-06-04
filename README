@@ -1,5 +1,5 @@
 NAME
-    CHI -- Unified cache interface
+    CHI -- Unified cache handling interface
 
 SYNOPSIS
         use CHI;
@@ -56,7 +56,7 @@ FEATURES
 
     *   Uniform support for namespaces
 
-    *   Automatic [de]serialization of data
+    *   Automatic serialization of keys and values
 
     *   Multilevel caches
 

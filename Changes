@@ -2,6 +2,17 @@ Revision history for CHI
 
 ** denotes an incompatible change
 
+0.35  Jun 4, 2010
+
+* Improvements
+  - Automatically serialize keys that are references
+  - Automatically digest long keys, based on max_key_length and key_digester
+  - Handle utf-8 characters in keys and values
+
+* Fixes
+  - Add Test::Builder and Test::Log::Dispatch to dependencies - RT #57091 - reported by Doug Bell
+  - Add line about installing Cache::FastMmap in CHI::Driver::FastMmap - RT #55920 - reported by RSAVAGE
+
 0.34  Feb 9, 2010
 
 * Improvements
