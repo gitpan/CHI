@@ -39,13 +39,12 @@ lib/CHI/t/Driver/File.pm
 lib/CHI/t/Driver/File/DepthZero.pm
 lib/CHI/t/Driver/Memory.pm
 lib/CHI/t/Driver/NonMoose.pm
-lib/CHI/t/Driver/Null.pm
 lib/CHI/t/Driver/Subcache.pm
 lib/CHI/t/Driver/Subcache/l1_cache.pm
 lib/CHI/t/Driver/Subcache/mirror_cache.pm
-lib/CHI/t/Encode.pm
 lib/CHI/t/GetError.pm
 lib/CHI/t/Initialize.pm
+lib/CHI/t/Null.pm
 lib/CHI/t/RequiredModules.pm
 lib/CHI/t/Sanity.pm
 lib/CHI/t/SetError.pm
@@ -70,7 +69,6 @@ t/00-load.t
 t/Bugs.t
 t/Constants.t
 t/Driver-Memory.t
-t/Encode.t
 t/GetError.t
 t/Initialize.t
 t/Sanity.t
@@ -88,11 +86,11 @@ xt/release/Driver-FastMmap.t
 xt/release/Driver-File-DepthZero.t
 xt/release/Driver-File.t
 xt/release/Driver-NonMoose.t
-xt/release/Driver-Null.t
 xt/release/Driver-Subcache-l1_cache.t
 xt/release/Driver-Subcache-mirror_cache.t
 xt/release/file-driver.t
 xt/release/no-data-serializer.t
+xt/release/Null.t
 xt/release/path_to_key.pl
 xt/release/permcache/Default/0/4/1.dat
 xt/release/permcache/Default/0/4/empty.dat

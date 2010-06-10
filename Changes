@@ -2,6 +2,12 @@ Revision history for CHI
 
 ** denotes an incompatible change
 
+0.36  Jun 9, 2010
+
+* Fixes
+  - Only encode keys with wide characters
+  - In escape_for_filename, replace \w with A-Za-z0-9_ to avoid The Unicode Bug
+
 0.35  Jun 4, 2010
 
 * Improvements
