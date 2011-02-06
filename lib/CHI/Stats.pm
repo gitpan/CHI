@@ -1,13 +1,16 @@
 package CHI::Stats;
+BEGIN {
+  $CHI::Stats::VERSION = '0.37';
+}
 use Log::Any qw($log);
 use Moose;
 use strict;
 use warnings;
 
 has 'chi_root_class' => ( is => 'ro' );
-has 'data' => ( is => 'ro', default => sub { {} } );
-has 'enabled' => ( is => 'ro', default => 0 );
-has 'start_time' => ( is => 'ro', default => sub { time } );
+has 'data'           => ( is => 'ro', default => sub { {} } );
+has 'enabled'        => ( is => 'ro', default => 0 );
+has 'start_time'     => ( is => 'ro', default => sub { time } );
 
 __PACKAGE__->meta->make_immutable();
 
@@ -124,13 +127,13 @@ sub clear {
 
 1;
 
-__END__
+
 
 =pod
 
-=head1 NAME
+=head1 VERSION
 
-CHI::Stats -- Record and report per-namespace cache statistics
+version 0.37
 
 =head1 SYNOPSIS
 
@@ -253,13 +256,18 @@ L<CHI|CHI>
 
 =head1 AUTHOR
 
-Jonathan Swartz
+Jonathan Swartz <swartz@pobox.com>
 
-=head1 COPYRIGHT & LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007 Jonathan Swartz, all rights reserved.
+This software is copyright (c) 2011 by Jonathan Swartz.
 
-This program is free software; you can redistribute it and/or modify it under
-the same terms as Perl itself.
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut
+
+
+__END__
+# ABSTRACT: Record and report per-namespace cache statistics
+

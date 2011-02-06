@@ -1,4 +1,7 @@
 package CHI::t::Driver::CacheCache;
+BEGIN {
+  $CHI::t::Driver::CacheCache::VERSION = '0.37';
+}
 use strict;
 use warnings;
 use CHI::Test;

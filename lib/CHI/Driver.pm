@@ -1,4 +1,7 @@
 package CHI::Driver;
+BEGIN {
+  $CHI::Driver::VERSION = '0.37';
+}
 use Carp;
 use CHI::CacheObject;
 use CHI::Constants qw(CHI_Max_Time);
@@ -29,40 +32,22 @@ has 'chi_root_class'     => ( is => 'ro' );
 has 'constructor_params' => ( is => 'ro', init_arg => undef );
 has 'driver_class'       => ( is => 'ro' );
 has 'expires_at'         => ( is => 'rw', default => CHI_Max_Time );
-has 'expires_in' => ( is => 'rw', isa => 'CHI::Types::Duration', coerce => 1 );
-has 'expires_variance' => ( is => 'rw', default => 0.0 );
-has 'has_subcaches' =>
-  ( is => 'ro', isa => 'Bool', default => undef, init_arg => undef );
-has 'is_size_aware' => ( is => 'ro', isa => 'Bool', default => undef );
-has 'is_subcache'   => ( is => 'ro', isa => 'Bool', default => undef );
-has 'key_digester'  => (
-    is      => 'ro',
-    isa     => 'CHI::Types::Digester',
-    coerce  => 1,
-    default => sub { $default_key_digester }
-);
-has 'key_serializer' => (
-    is      => 'ro',
-    isa     => 'CHI::Types::Serializer',
-    coerce  => 1,
-    default => sub { $default_key_serializer }
-);
-has 'label'           => ( is => 'rw', lazy_build => 1 );
-has 'max_build_depth' => ( is => 'ro', default    => 8 );
-has 'max_key_length' => ( is => 'ro', isa        => 'Int', default => 1 << 31 );
-has 'metacache'      => ( is => 'ro', lazy_build => 1 );
-has 'namespace' => ( is => 'ro', isa => 'Str', default => 'Default' );
-has 'on_get_error' =>
-  ( is => 'rw', isa => 'CHI::Types::OnError', default => 'log' );
-has 'on_set_error' =>
-  ( is => 'rw', isa => 'CHI::Types::OnError', default => 'log' );
-has 'serializer' => (
-    is      => 'ro',
-    isa     => 'CHI::Types::Serializer',
-    coerce  => 1,
-    default => sub { $default_serializer }
-);
-has 'short_driver_name' => ( is => 'ro', lazy_build => 1 );
+has 'expires_in'         => ( is => 'rw', isa => 'CHI::Types::Duration', coerce => 1 );
+has 'expires_variance'   => ( is => 'rw', default => 0.0 );
+has 'has_subcaches'      => ( is => 'ro', isa => 'Bool', default => undef, init_arg => undef );
+has 'is_size_aware'      => ( is => 'ro', isa => 'Bool', default => undef );
+has 'is_subcache'        => ( is => 'ro', isa => 'Bool', default => undef );
+has 'key_digester'       => ( is => 'ro', isa => 'CHI::Types::Digester', coerce => 1, default => sub { $default_key_digester } );
+has 'key_serializer'     => ( is => 'ro', isa => 'CHI::Types::Serializer', coerce => 1, default => sub { $default_key_serializer } );
+has 'label'              => ( is => 'rw', lazy_build => 1 );
+has 'max_build_depth'    => ( is => 'ro', default => 8 );
+has 'max_key_length'     => ( is => 'ro', isa => 'Int', default => 1 << 31 );
+has 'metacache'          => ( is => 'ro', lazy_build => 1 );
+has 'namespace'          => ( is => 'ro', isa => 'Str', default => 'Default' );
+has 'on_get_error'       => ( is => 'rw', isa => 'CHI::Types::OnError', default => 'log' );
+has 'on_set_error'       => ( is => 'rw', isa => 'CHI::Types::OnError', default => 'log' );
+has 'serializer'         => ( is => 'ro', isa => 'CHI::Types::Serializer', coerce => 1, default => sub { $default_serializer } );
+has 'short_driver_name'  => ( is => 'ro', lazy_build => 1 );
 
 # These methods must be implemented by subclass
 foreach my $method (qw(fetch store remove get_keys get_namespaces)) {
@@ -626,13 +611,13 @@ sub _describe_cache_set {
 
 1;
 
-__END__
+
 
 =pod
 
-=head1 NAME
+=head1 VERSION
 
-CHI::Driver -- Base class for all CHI drivers.
+version 0.37
 
 =head1 DESCRIPTION
 
@@ -643,15 +628,24 @@ See L<CHI/METHODS> for documentation on $cache methods, and
 L<CHI::Driver::Development|CHI::Driver::Development> for documentation on
 creating new subclasses of CHI::Driver.
 
+=head1 SEE ALSO
+
+L<CHI|CHI>
+
 =head1 AUTHOR
 
-Jonathan Swartz
+Jonathan Swartz <swartz@pobox.com>
 
-=head1 COPYRIGHT & LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007 Jonathan Swartz.
+This software is copyright (c) 2011 by Jonathan Swartz.
 
-This program is free software; you can redistribute it and/or modify it under
-the same terms as Perl itself.
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut
+
+
+__END__
+# ABSTRACT: Base class for all CHI drivers
+

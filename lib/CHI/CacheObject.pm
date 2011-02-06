@@ -1,4 +1,7 @@
 package CHI::CacheObject;
+BEGIN {
+  $CHI::CacheObject::VERSION = '0.37';
+}
 use CHI::Constants qw(CHI_Max_Time);
 use Encode;
 use strict;
@@ -143,13 +146,14 @@ sub value {
 
 1;
 
-__END__
+# ABSTRACT: Contains information about cache entries
+
 
 =pod
 
-=head1 NAME
+=head1 VERSION
 
-CHI::CacheObject -- Contains information about cache entries.
+version 0.37
 
 =head1 SYNOPSIS
 
@@ -206,17 +210,21 @@ probabilistically determined if an L</expires_variance> was used.
 
 =head1 SEE ALSO
 
-CHI
+L<CHI|CHI>
 
 =head1 AUTHOR
 
-Jonathan Swartz
+Jonathan Swartz <swartz@pobox.com>
 
-=head1 COPYRIGHT & LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007 Jonathan Swartz.
+This software is copyright (c) 2011 by Jonathan Swartz.
 
-This program is free software; you can redistribute it and/or modify it under
-the same terms as Perl itself.
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut
+
+
+__END__
+

@@ -1,15 +1,17 @@
 package CHI::t::Driver;
+BEGIN {
+  $CHI::t::Driver::VERSION = '0.37';
+}
 use strict;
 use warnings;
 use CHI::Test;
 use CHI::Test::Util
   qw(activate_test_logger cmp_bool is_between random_string skip_until);
-use CHI::Util qw(dump_one_line write_file);
+use CHI::Util qw(can_load dump_one_line write_file);
 use Encode;
 use File::Spec::Functions qw(tmpdir);
 use File::Temp qw(tempdir);
 use List::Util qw(shuffle);
-use Module::Load::Conditional qw(can_load check_install);
 use Scalar::Util qw(weaken);
 use Storable qw(dclone);
 use Test::Warn;
@@ -560,8 +562,10 @@ sub test_serialize : Tests {
 }
 
 {
-
     package DummySerializer;
+BEGIN {
+  $DummySerializer::VERSION = '0.37';
+}
     sub serialize   { }
     sub deserialize { }
 }
@@ -569,14 +573,14 @@ sub test_serialize : Tests {
 sub test_serializers : Tests {
     my ($self) = @_;
 
-    unless ( can_load( modules => { 'Data::Serializer' => 0 } ) ) {
+    unless ( can_load('Data::Serializer') ) {
         $self->num_tests(1);
         return 'Data::Serializer not installed';
     }
 
     my @modes    = (qw(string hash object));
     my @variants = (qw(Storable Data::Dumper YAML));
-    @variants = grep { check_install( module => $_ ) } @variants;
+    @variants = grep { can_load($_) } @variants;
     ok( scalar(@variants), "some variants ok" );
 
     my $initial_count        = 5;
@@ -1450,8 +1454,13 @@ sub test_discard_timeout : Test(4) {
     my $start_time = time;
     $cache->set( 2, 2 );
     throws_ok { $cache->discard_to_size(0) } qr/discard timeout .* reached/;
-    ok( time >= $start_time && time <= $start_time + 3,
-        "timed out in 1 second" );
+    ok(
+        time >= $start_time && time <= $start_time + 4,
+        sprintf(
+            "time (%d) is between %d and %d",
+            time, $start_time, $start_time + 4
+        )
+    );
 }
 
 sub test_size_awareness_with_subcaches : Test(19) {

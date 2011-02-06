@@ -1,4 +1,7 @@
 package CHI::Driver::Base::CacheContainer;
+BEGIN {
+  $CHI::Driver::Base::CacheContainer::VERSION = '0.37';
+}
 use Moose;
 use Moose::Util::TypeConstraints;
 use List::MoreUtils qw( all );
@@ -49,28 +52,37 @@ sub get_namespaces {
 
 1;
 
-__END__
+
 
 =pod
 
-=head1 NAME
+=head1 VERSION
 
-CHI::Driver::Role::CacheContainer
+version 0.37
 
 =head1 DESCRIPTION
 
 Role for CHI drivers with an internal '_contained_cache' slot that itself
 adheres to the Cache::Cache API, partially or completely.
 
+=head1 SEE ALSO
+
+L<CHI|CHI>
+
 =head1 AUTHOR
 
-Jonathan Swartz
+Jonathan Swartz <swartz@pobox.com>
 
-=head1 COPYRIGHT & LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007 Jonathan Swartz.
+This software is copyright (c) 2011 by Jonathan Swartz.
 
-This program is free software; you can redistribute it and/or modify it under
-the same terms as Perl itself.
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut
+
+
+__END__
+# ABSTRACT: Caches that delegate to a contained cache
+

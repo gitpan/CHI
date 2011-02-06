@@ -1,21 +1,16 @@
 package CHI::Driver::Role::IsSizeAware;
+BEGIN {
+  $CHI::Driver::Role::IsSizeAware::VERSION = '0.37';
+}
 use Carp::Assert;
 use Moose::Role;
 use strict;
 use warnings;
 
-has 'max_size' => ( is => 'rw', isa => 'CHI::Types::MemorySize', coerce => 1 );
+has 'max_size'                  => ( is => 'rw', isa => 'CHI::Types::MemorySize', coerce => 1 );
 has 'max_size_reduction_factor' => ( is => 'rw', isa => 'Num', default => 0.8 );
-has 'discard_policy' => (
-    is      => 'ro',
-    isa     => 'Maybe[CHI::Types::DiscardPolicy]',
-    builder => '_build_discard_policy',
-);
-has 'discard_timeout' => (
-    is      => 'rw',
-    isa     => 'Num',
-    default => 10
-);
+has 'discard_policy'            => ( is => 'ro', isa => 'Maybe[CHI::Types::DiscardPolicy]', builder => '_build_discard_policy' );
+has 'discard_timeout'           => ( is => 'rw', isa => 'Num', default => 10 );
 
 use constant Size_Key => 'CHI_IsSizeAware_size';
 
@@ -45,7 +40,9 @@ around 'remove' => sub {
     my ($key) = @_;
 
     my ( $size_delta, $data );
-    if ( !$self->{_no_set_size_on_remove} && ( $data = $self->fetch($key) ) ) {
+    if ( !$self->{_no_set_size_on_remove}
+        && ( $data = $self->fetch($key) ) )
+    {
         $size_delta = -1 * length($data);
     }
     $self->$orig(@_);

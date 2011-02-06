@@ -1,6 +1,9 @@
 package CHI::Test::Class;
+BEGIN {
+  $CHI::Test::Class::VERSION = '0.37';
+}
 use Getopt::Long;
-use Module::Load::Conditional qw(can_load);
+use CHI::Util qw(can_load);
 use strict;
 use warnings;
 use base qw(Test::Class);
@@ -12,7 +15,7 @@ sub runtests {
     #
     if ( my $required_modules = $class->required_modules ) {
         while ( my ( $key, $value ) = each(%$required_modules) ) {
-            unless ( can_load( modules => { $key, $value } ) ) {
+            unless ( can_load($key) ) {
                 $class->SKIP_ALL("one of required modules not installed: $key");
             }
         }

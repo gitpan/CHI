@@ -5,7 +5,7 @@ use CHI::Stats;
 use strict;
 use warnings;
 
-our $VERSION = '0.36';
+our $VERSION = '0.37';
 
 my ( %final_class_seen, %stats );
 
@@ -82,13 +82,14 @@ sub new {
 
 1;
 
-__END__
+# ABSTRACT: Unified cache handling interface
+
 
 =pod
 
-=head1 NAME
+=head1 VERSION
 
-CHI -- Unified cache handling interface
+version 0.37
 
 =head1 SYNOPSIS
 
@@ -330,7 +331,7 @@ message, the key, and the original raw error message
 
 =back
 
-=back    
+=back
 
 Some drivers will take additional constructor options. For example, the File
 driver takes C<root_dir> and C<depth> options.
@@ -605,12 +606,12 @@ e.g.
     label
     on_get_error
     on_set_error
-    
+
 =item Standard read-only accessors
 
     namespace
     serializer
-    
+
 =back
 
 =head2 Deprecated methods
@@ -1147,24 +1148,23 @@ CHI was originally designed and developed for the Digital Media group of the
 Hearst Corporation, a diversified media company based in New York City.  Many
 thanks to Hearst management for agreeing to this open source release.
 
-=head1 AUTHOR
-
-Jonathan Swartz
-
 =head1 SEE ALSO
 
-L<Cache::Cache|Cache::Cache>, L<Cache::Memcached|Cache::Memcached>,
-L<Cache::FastMmap|Cache::FastMmap>
+L<Cache::Cache|Cache::Cache>
 
-=head1 COPYRIGHT & LICENSE
+=head1 AUTHOR
 
-Copyright (C) 2007 Jonathan Swartz.
+Jonathan Swartz <swartz@pobox.com>
 
-CHI is provided "as is" and without any express or implied warranties,
-including, without limitation, the implied warranties of merchantibility and
-fitness for a particular purpose.
+=head1 COPYRIGHT AND LICENSE
 
-This program is free software; you can redistribute it and/or modify it under
-the same terms as Perl itself.
+This software is copyright (c) 2011 by Jonathan Swartz.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut
+
+
+__END__
+

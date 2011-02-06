@@ -1,4 +1,7 @@
 package CHI::Driver::CacheCache;
+BEGIN {
+  $CHI::Driver::CacheCache::VERSION = '0.37';
+}
 use Cache::Cache;
 use Carp;
 use Moose;
@@ -7,7 +10,7 @@ use warnings;
 
 extends 'CHI::Driver::Base::CacheContainer';
 
-has 'cc_class'   => ( is => 'ro', isa => 'Str',     required => 1 );
+has 'cc_class'   => ( is => 'ro', isa => 'Str', required => 1 );
 has 'cc_options' => ( is => 'ro', isa => 'HashRef', required => 1 );
 
 __PACKAGE__->meta->make_immutable();
@@ -34,13 +37,13 @@ sub _build_contained_cache {
 
 1;
 
-__END__
+
 
 =pod
 
-=head1 NAME
+=head1 VERSION
 
-CHI::Driver::CacheCache -- CHI wrapper for Cache::Cache
+version 0.37
 
 =head1 SYNOPSIS
 
@@ -75,17 +78,22 @@ Hashref of options to pass to Cache::Cache constructor. Required.
 
 =head1 SEE ALSO
 
-Cache::Cache CHI
+L<CHI|CHI>
 
 =head1 AUTHOR
 
-Jonathan Swartz
+Jonathan Swartz <swartz@pobox.com>
 
-=head1 COPYRIGHT & LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007 Jonathan Swartz.
+This software is copyright (c) 2011 by Jonathan Swartz.
 
-This program is free software; you can redistribute it and/or modify it under
-the same terms as Perl itself.
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut
+
+
+__END__
+#ABSTRACT: CHI wrapper for Cache::Cache
+

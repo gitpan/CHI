@@ -1,4 +1,7 @@
 package CHI::t::Sanity;
+BEGIN {
+  $CHI::t::Sanity::VERSION = '0.37';
+}
 use strict;
 use warnings;
 use CHI::Test;

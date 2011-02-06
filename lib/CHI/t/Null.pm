@@ -1,4 +1,7 @@
 package CHI::t::Null;
+BEGIN {
+  $CHI::t::Null::VERSION = '0.37';
+}
 use strict;
 use warnings;
 use CHI::Test;

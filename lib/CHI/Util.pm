@@ -1,15 +1,21 @@
 package CHI::Util;
+BEGIN {
+  $CHI::Util::VERSION = '0.37';
+}
 use Carp qw( croak longmess );
+use Class::MOP;
 use Data::Dumper;
 use Data::UUID;
 use Fcntl qw( :DEFAULT );
 use File::Spec::Functions qw(catdir catfile);
 use Time::Duration::Parse;
+use Try::Tiny;
 use strict;
 use warnings;
 use base qw(Exporter);
 
 our @EXPORT_OK = qw(
+  can_load
   dump_one_line
   fast_catdir
   fast_catfile
@@ -24,6 +30,29 @@ our @EXPORT_OK = qw(
 
 my $Fetch_Flags = O_RDONLY | O_BINARY;
 my $Store_Flags = O_WRONLY | O_CREAT | O_BINARY;
+
+sub can_load {
+
+    # Load $class_name if possible. Return 1 if successful, 0 if it could not be
+    # found, and rethrow load error (other than not found).
+    #
+    my ($class_name) = @_;
+
+    my $result;
+    try {
+        Class::MOP::load_class($class_name);
+        $result = 1;
+    }
+    catch {
+        if ( /Can\'t locate .* in \@INC/ && !/Compilation failed/ ) {
+            $result = 0;
+        }
+        else {
+            die $_;
+        }
+    };
+    return $result;
+}
 
 sub dump_one_line {
     my ($value) = @_;
@@ -147,27 +176,31 @@ sub has_moose_class {
 
 1;
 
-__END__
+
 
 =pod
 
-=head1 NAME
+=head1 VERSION
 
-CHI::Util -- Internal utilities
+version 0.37
 
-=head1 DESCRIPTION
+=head1 SEE ALSO
 
-These are utilities for internal CHI use.
+L<CHI|CHI>
 
 =head1 AUTHOR
 
-Jonathan Swartz
+Jonathan Swartz <swartz@pobox.com>
 
-=head1 COPYRIGHT & LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007 Jonathan Swartz, all rights reserved.
+This software is copyright (c) 2011 by Jonathan Swartz.
 
-This program is free software; you can redistribute it and/or modify it under
-the same terms as Perl itself.
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut
+
+
+__END__
+# ABSTRACT: Utilities for internal CHI use

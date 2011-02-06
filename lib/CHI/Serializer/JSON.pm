@@ -2,6 +2,9 @@
 # Recommend Data::Serializer for other serializers, rather than reinventing the wheel.
 #
 package CHI::Serializer::JSON;
+BEGIN {
+  $CHI::Serializer::JSON::VERSION = '0.37';
+}
 use Moose;
 use JSON;
 use strict;

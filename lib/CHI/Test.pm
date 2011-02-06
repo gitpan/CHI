@@ -1,6 +1,9 @@
 # $Id: $
 #
 package CHI::Test;
+BEGIN {
+  $CHI::Test::VERSION = '0.37';
+}
 use List::MoreUtils qw(uniq);
 use Class::MOP;
 use CHI;

@@ -1,50 +1,75 @@
-use inc::Module::Install;
 
-name 'CHI';
-abstract 'Unified cache interface';
-all_from 'lib/CHI.pm';
-author 'Jonathan Swartz <swartz@pobox.com>';
+use strict;
+use warnings;
 
-perl_version '5.006';
 
-build_requires 'Date::Parse'                 => 0;
-build_requires 'Log::Any::Adapter::Dispatch' => '0.05';
-build_requires 'Test::Builder'               => 0;
-build_requires 'Test::Class'                 => 0;
-build_requires 'Test::Deep'                  => 0;
-build_requires 'Test::Exception'             => 0;
-build_requires 'Test::Log::Dispatch'         => 0;
-build_requires 'Test::More'                  => 0;
-build_requires 'Test::Warn'                  => 0;
 
-requires 'Carp::Assert'              => '0.20';
-requires 'Data::UUID'                => 0;
-requires 'Digest::JHash'             => 0;
-requires 'Digest::MD5'               => 0;
-requires 'File::Spec'                => '0.80';
-requires 'Hash::MoreUtils'           => 0;
-requires 'JSON'                      => 0;
-requires 'List::MoreUtils'           => '0.13';
-requires 'Log::Any'                  => '0.06';
-requires 'Module::Load::Conditional' => 0;
-requires 'Moose'                     => '0.66';
-requires 'Storable'                  => 0;
-requires 'Task::Weaken'              => 0;
-requires 'Time::Duration'            => '1.06';
-requires 'Time::Duration::Parse'     => '0.03';
+use ExtUtils::MakeMaker 6.31;
 
-no_index directory => 'lib/CHI/t';
-no_index directory => 'lib/CHI/Test';
-no_index package => 'CHI::Constants';
-no_index package => 'CHI::Serializer::Storable';
-no_index package => 'CHI::Test';
-no_index package => 'CHI::Types';
-no_index package => 'CHI::Util';
 
-extra_tests;
 
-license 'perl';
+my %WriteMakefileArgs = (
+  'ABSTRACT' => 'Unified cache handling interface',
+  'AUTHOR' => 'Jonathan Swartz <swartz@pobox.com>',
+  'BUILD_REQUIRES' => {
+    'Date::Parse' => '0',
+    'Log::Any::Adapter::Dispatch' => '0.05',
+    'Test::Builder' => '0',
+    'Test::Class' => '0',
+    'Test::Deep' => '0',
+    'Test::Exception' => '0',
+    'Test::Log::Dispatch' => '0',
+    'Test::More' => '0',
+    'Test::Warn' => '0'
+  },
+  'CONFIGURE_REQUIRES' => {
+    'ExtUtils::MakeMaker' => '6.31'
+  },
+  'DISTNAME' => 'CHI',
+  'EXE_FILES' => [],
+  'LICENSE' => 'perl',
+  'NAME' => 'CHI',
+  'PREREQ_PM' => {
+    'Carp::Assert' => '0.20',
+    'Data::UUID' => '0',
+    'Digest::JHash' => '0',
+    'Digest::MD5' => '0',
+    'File::Spec' => '0.80',
+    'Hash::MoreUtils' => '0',
+    'JSON' => '0',
+    'List::MoreUtils' => '0.13',
+    'Log::Any' => '0.06',
+    'Moose' => '0.66',
+    'Storable' => '0',
+    'Task::Weaken' => '0',
+    'Time::Duration' => '1.06',
+    'Time::Duration::Parse' => '0.03',
+    'Try::Tiny' => '0.05'
+  },
+  'VERSION' => '0.37',
+  'test' => {
+    'TESTS' => 't/*.t'
+  }
+);
 
-auto_install;
 
-WriteAll;
+unless ( eval { ExtUtils::MakeMaker->VERSION(6.56) } ) {
+  my $br = delete $WriteMakefileArgs{BUILD_REQUIRES};
+  my $pp = $WriteMakefileArgs{PREREQ_PM};
+  for my $mod ( keys %$br ) {
+    if ( exists $pp->{$mod} ) {
+      $pp->{$mod} = $br->{$mod} if $br->{$mod} > $pp->{$mod};
+    }
+    else {
+      $pp->{$mod} = $br->{$mod};
+    }
+  }
+}
+
+delete $WriteMakefileArgs{CONFIGURE_REQUIRES}
+  unless eval { ExtUtils::MakeMaker->VERSION(6.52) };
+
+WriteMakefile(%WriteMakefileArgs);
+
+
+

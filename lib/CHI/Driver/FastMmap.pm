@@ -1,4 +1,7 @@
 package CHI::Driver::FastMmap;
+BEGIN {
+  $CHI::Driver::FastMmap::VERSION = '0.37';
+}
 use Carp;
 use Cache::FastMmap;
 use CHI::Util qw(read_dir);
@@ -11,11 +14,7 @@ use warnings;
 extends 'CHI::Driver::Base::CacheContainer';
 
 has 'dir_create_mode' => ( is => 'ro', isa => 'Int', default => oct(775) );
-has 'root_dir' => (
-    is      => 'ro',
-    isa     => 'Str',
-    default => catdir( tmpdir(), "chi-driver-fastmmap" )
-);
+has 'root_dir'        => ( is => 'ro', isa => 'Str', default => catdir( tmpdir(), "chi-driver-fastmmap" ) );
 
 __PACKAGE__->meta->make_immutable();
 
@@ -80,13 +79,13 @@ sub store {
 
 1;
 
-__END__
+
 
 =pod
 
-=head1 NAME
+=head1 VERSION
 
-CHI::Driver::FastMmap -- Shared memory interprocess cache via mmap'ed files
+version 0.37
 
 =head1 SYNOPSIS
 
@@ -97,11 +96,6 @@ CHI::Driver::FastMmap -- Shared memory interprocess cache via mmap'ed files
         root_dir   => '/path/to/cache/root',
         cache_size => '1m'
     );
-
-=head1 REQUIREMENTS
-
-You will need to install L<Cache::FastMmap|Cache::FastMmap> from CPAN to use
-this driver.
 
 =head1 DESCRIPTION
 
@@ -115,6 +109,11 @@ file, and creates one Cache::FastMMap file for each namespace.
 Because CHI handles serialization automatically, we pass the C<raw_values> flag
 as 1; and to conform to the CHI API, we pass C<unlink_on_exit> as 0, so that
 all cache files are permanent.
+
+=head1 REQUIREMENTS
+
+You will need to install L<Cache::FastMmap|Cache::FastMmap> from CPAN to use
+this driver.
 
 =head1 CONSTRUCTOR OPTIONS
 
@@ -150,17 +149,22 @@ call FastMmap-specific methods that are not supported by the general API, e.g.
 
 =head1 SEE ALSO
 
-Cache::FastMmap CHI
+L<CHI|CHI>
 
 =head1 AUTHOR
 
-Jonathan Swartz
+Jonathan Swartz <swartz@pobox.com>
 
-=head1 COPYRIGHT & LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007 Jonathan Swartz.
+This software is copyright (c) 2011 by Jonathan Swartz.
 
-This program is free software; you can redistribute it and/or modify it under
-the same terms as Perl itself.
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut
+
+
+__END__
+# ABSTRACT: Shared memory interprocess cache via mmap'ed files
+

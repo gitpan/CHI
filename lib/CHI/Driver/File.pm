@@ -1,4 +1,7 @@
 package CHI::Driver::File;
+BEGIN {
+  $CHI::Driver::File::VERSION = '0.37';
+}
 use Carp;
 use Cwd qw(realpath cwd);
 use CHI::Types;
@@ -16,21 +19,13 @@ use warnings;
 
 extends 'CHI::Driver';
 
-has 'depth'            => ( is => 'ro', isa => 'Int', default => 2 );
-has 'dir_create_mode'  => ( is => 'ro', isa => 'Int', default => oct(775) );
-has 'file_create_mode' => ( is => 'ro', isa => 'Int', default => oct(666) );
-has 'file_extension'   => ( is => 'ro', isa => 'Str', default => '.dat' );
-has '+max_key_length' => ( default => 248 );
-has 'root_dir' => (
-    is      => 'ro',
-    isa     => 'Str',
-    default => catdir( tmpdir(), 'chi-driver-file' ),
-);
-has 'path_to_namespace' => (
-    is      => 'ro',
-    lazy    => 1,
-    builder => '_build_path_to_namespace',
-);
+has 'depth'             => ( is => 'ro', isa => 'Int', default => 2 );
+has 'dir_create_mode'   => ( is => 'ro', isa => 'Int', default => oct(775) );
+has 'file_create_mode'  => ( is => 'ro', isa => 'Int', default => oct(666) );
+has 'file_extension'    => ( is => 'ro', isa => 'Str', default => '.dat' );
+has '+max_key_length'   => ( default => 248 );
+has 'root_dir'          => ( is => 'ro', isa => 'Str', default => catdir( tmpdir(), 'chi-driver-file' ) );
+has 'path_to_namespace' => ( is => 'ro', lazy => 1, builder => '_build_path_to_namespace' );
 
 __PACKAGE__->meta->make_immutable();
 
@@ -241,14 +236,13 @@ sub path_to_key {
 
 1;
 
-__END__
+
 
 =pod
 
-=head1 NAME
+=head1 VERSION
 
-CHI::Driver::File -- File-based cache using one file per entry in a multi-level
-directory structure
+version 0.37
 
 =head1 SYNOPSIS
 
@@ -317,7 +311,7 @@ Defaults to 0666.
 Extension to append to filename. Default is ".dat".
 
 =back
-    
+
 =head1 METHODS
 
 =over
@@ -349,13 +343,18 @@ L<CHI|CHI>
 
 =head1 AUTHOR
 
-Jonathan Swartz
+Jonathan Swartz <swartz@pobox.com>
 
-=head1 COPYRIGHT & LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007 Jonathan Swartz.
+This software is copyright (c) 2011 by Jonathan Swartz.
 
-This program is free software; you can redistribute it and/or modify it under
-the same terms as Perl itself.
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut
+
+
+__END__
+# ABSTRACT: File-based cache using one file per entry in a multi-level directory structure
+

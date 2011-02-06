@@ -1,4 +1,7 @@
 package CHI::t::Driver::File;
+BEGIN {
+  $CHI::t::Driver::File::VERSION = '0.37';
+}
 use strict;
 use warnings;
 use CHI::Test;
@@ -19,8 +22,10 @@ sub new_cache_options {
 }
 
 {
-
     package CHI::t::Driver::File::NoTempDriver;
+BEGIN {
+  $CHI::t::Driver::File::NoTempDriver::VERSION = '0.37';
+}
     use Moose;
     extends 'CHI::Driver::File';
     __PACKAGE__->meta->make_immutable;
@@ -32,8 +37,10 @@ sub new_cache_options {
 }
 
 {
-
     package CHI::t::Driver::File::BadTempDriver;
+BEGIN {
+  $CHI::t::Driver::File::BadTempDriver::VERSION = '0.37';
+}
     use Moose;
     extends 'CHI::Driver::File';
     __PACKAGE__->meta->make_immutable;
