@@ -1,6 +1,6 @@
 package CHI::Driver::File;
 BEGIN {
-  $CHI::Driver::File::VERSION = '0.37';
+  $CHI::Driver::File::VERSION = '0.38';
 }
 use Carp;
 use Cwd qw(realpath cwd);
@@ -242,7 +242,7 @@ sub path_to_key {
 
 =head1 VERSION
 
-version 0.37
+version 0.38
 
 =head1 SYNOPSIS
 

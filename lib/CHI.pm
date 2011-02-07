@@ -1,11 +1,12 @@
 package CHI;
+BEGIN {
+  $CHI::VERSION = '0.38';
+}
 use 5.006;
 use Carp;
 use CHI::Stats;
 use strict;
 use warnings;
-
-our $VERSION = '0.37';
 
 my ( %final_class_seen, %stats );
 
@@ -89,7 +90,7 @@ sub new {
 
 =head1 VERSION
 
-version 0.37
+version 0.38
 
 =head1 SYNOPSIS
 

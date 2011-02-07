@@ -1,6 +1,6 @@
 package CHI::Stats;
 BEGIN {
-  $CHI::Stats::VERSION = '0.37';
+  $CHI::Stats::VERSION = '0.38';
 }
 use Log::Any qw($log);
 use Moose;
@@ -133,7 +133,7 @@ sub clear {
 
 =head1 VERSION
 
-version 0.37
+version 0.38
 
 =head1 SYNOPSIS
 

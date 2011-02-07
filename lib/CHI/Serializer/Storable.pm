@@ -3,7 +3,7 @@
 #
 package CHI::Serializer::Storable;
 BEGIN {
-  $CHI::Serializer::Storable::VERSION = '0.37';
+  $CHI::Serializer::Storable::VERSION = '0.38';
 }
 use Moose;
 use Storable;

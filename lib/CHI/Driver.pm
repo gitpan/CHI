@@ -1,6 +1,6 @@
 package CHI::Driver;
 BEGIN {
-  $CHI::Driver::VERSION = '0.37';
+  $CHI::Driver::VERSION = '0.38';
 }
 use Carp;
 use CHI::CacheObject;
@@ -617,7 +617,7 @@ sub _describe_cache_set {
 
 =head1 VERSION
 
-version 0.37
+version 0.38
 
 =head1 DESCRIPTION
 

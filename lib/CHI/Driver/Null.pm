@@ -1,6 +1,6 @@
 package CHI::Driver::Null;
 BEGIN {
-  $CHI::Driver::Null::VERSION = '0.37';
+  $CHI::Driver::Null::VERSION = '0.38';
 }
 use Moose;
 use strict;
@@ -24,7 +24,7 @@ sub get_namespaces { return () }
 
 =head1 VERSION
 
-version 0.37
+version 0.38
 
 =head1 SYNOPSIS
 

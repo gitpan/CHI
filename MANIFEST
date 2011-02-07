@@ -65,7 +65,10 @@ t/SetError.t
 t/Subcache.t
 t/Subclass.t
 t/Util.t
+t/author-03-pod.t
+t/author-RequiredModules.t
 t/author-file-driver.t
+t/author-no-data-serializer.t
 t/permcache/Default/0/4/1.dat
 t/permcache/Default/0/4/empty.dat
 t/permcache/Default/1/a/+20+21+22+23+24+25+26+27+28+29+2a+2b+2c-+2e+2f09+3a+3b+3c=+3e+3f+40AZ+5b+5c+5d+5e_+60az+7b+7c+7d~+f0.dat
@@ -75,7 +78,6 @@ t/permcache/Default/7/7/+20.dat
 t/permcache/Default/8/1/a.dat
 t/permcache/Default/b/6/medium.dat
 t/set_permcache.pl
-t/smoke-03-pod.t
 t/smoke-Driver-CacheCache.t
 t/smoke-Driver-FastMmap.t
 t/smoke-Driver-File-DepthZero.t
@@ -84,6 +86,4 @@ t/smoke-Driver-NonMoose.t
 t/smoke-Driver-Subcache-l1_cache.t
 t/smoke-Driver-Subcache-mirror_cache.t
 t/smoke-Null.t
-t/smoke-RequiredModules.t
-t/smoke-no-data-serializer.t
 weaver.ini

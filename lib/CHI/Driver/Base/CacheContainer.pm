@@ -1,6 +1,6 @@
 package CHI::Driver::Base::CacheContainer;
 BEGIN {
-  $CHI::Driver::Base::CacheContainer::VERSION = '0.37';
+  $CHI::Driver::Base::CacheContainer::VERSION = '0.38';
 }
 use Moose;
 use Moose::Util::TypeConstraints;
@@ -58,7 +58,7 @@ sub get_namespaces {
 
 =head1 VERSION
 
-version 0.37
+version 0.38
 
 =head1 DESCRIPTION
 

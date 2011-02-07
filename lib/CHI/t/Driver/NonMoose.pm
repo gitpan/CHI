@@ -1,6 +1,6 @@
 package CHI::t::Driver::NonMoose;
 BEGIN {
-  $CHI::t::Driver::NonMoose::VERSION = '0.37';
+  $CHI::t::Driver::NonMoose::VERSION = '0.38';
 }
 use strict;
 use warnings;

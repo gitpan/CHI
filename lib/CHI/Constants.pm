@@ -1,6 +1,6 @@
 package CHI::Constants;
 BEGIN {
-  $CHI::Constants::VERSION = '0.37';
+  $CHI::Constants::VERSION = '0.38';
 }
 use strict;
 use warnings;
@@ -25,7 +25,7 @@ use constant CHI_Max_Time       => 0xffffffff;
 
 =head1 VERSION
 
-version 0.37
+version 0.38
 
 =head1 DESCRIPTION
 
