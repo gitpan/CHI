@@ -1,6 +1,6 @@
 package CHI::Driver::Metacache;
 BEGIN {
-  $CHI::Driver::Metacache::VERSION = '0.38';
+  $CHI::Driver::Metacache::VERSION = '0.39';
 }
 use CHI::Constants qw(CHI_Meta_Namespace);
 use Moose;
@@ -60,9 +60,13 @@ sub _prefixed_key {
 
 =pod
 
+=head1 NAME
+
+CHI::Driver::Metacache - metacache for internal CHI use
+
 =head1 VERSION
 
-version 0.38
+version 0.39
 
 =head1 SYNOPSIS
 

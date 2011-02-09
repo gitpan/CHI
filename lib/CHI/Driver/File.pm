@@ -1,6 +1,6 @@
 package CHI::Driver::File;
 BEGIN {
-  $CHI::Driver::File::VERSION = '0.38';
+  $CHI::Driver::File::VERSION = '0.39';
 }
 use Carp;
 use Cwd qw(realpath cwd);
@@ -240,9 +240,13 @@ sub path_to_key {
 
 =pod
 
+=head1 NAME
+
+CHI::Driver::File - File-based cache using one file per entry in a multi-level directory structure
+
 =head1 VERSION
 
-version 0.38
+version 0.39
 
 =head1 SYNOPSIS
 

@@ -1,6 +1,6 @@
 package CHI::Util;
 BEGIN {
-  $CHI::Util::VERSION = '0.38';
+  $CHI::Util::VERSION = '0.39';
 }
 use Carp qw( croak longmess );
 use Class::MOP;
@@ -180,9 +180,13 @@ sub has_moose_class {
 
 =pod
 
+=head1 NAME
+
+CHI::Util - Utilities for internal CHI use
+
 =head1 VERSION
 
-version 0.38
+version 0.39
 
 =head1 SEE ALSO
 

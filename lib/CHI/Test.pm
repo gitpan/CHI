@@ -2,7 +2,7 @@
 #
 package CHI::Test;
 BEGIN {
-  $CHI::Test::VERSION = '0.38';
+  $CHI::Test::VERSION = '0.39';
 }
 use List::MoreUtils qw(uniq);
 use Class::MOP;

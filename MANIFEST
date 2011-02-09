@@ -3,6 +3,7 @@ INSTALL
 LICENSE
 MANIFEST
 META.json
+META.yml
 Makefile.PL
 README
 lib/CHI.pm
@@ -86,4 +87,3 @@ t/smoke-Driver-NonMoose.t
 t/smoke-Driver-Subcache-l1_cache.t
 t/smoke-Driver-Subcache-mirror_cache.t
 t/smoke-Null.t
-weaver.ini

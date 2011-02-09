@@ -1,6 +1,6 @@
 package CHI::t::Constants;
 BEGIN {
-  $CHI::t::Constants::VERSION = '0.38';
+  $CHI::t::Constants::VERSION = '0.39';
 }
 use strict;
 use warnings;
@@ -11,21 +11,21 @@ sub test_import : Test(4) {
     {
         package Foo;
 BEGIN {
-  $Foo::VERSION = '0.38';
+  $Foo::VERSION = '0.39';
 }
         use CHI::Constants qw(CHI_Meta_Namespace);
     }
     {
         package Bar;
 BEGIN {
-  $Bar::VERSION = '0.38';
+  $Bar::VERSION = '0.39';
 }
         use CHI::Constants qw(:all);
     }
     {
         package Baz;
 BEGIN {
-  $Baz::VERSION = '0.38';
+  $Baz::VERSION = '0.39';
 }
     }
     is( Foo::CHI_Meta_Namespace, '_CHI_METACACHE' );

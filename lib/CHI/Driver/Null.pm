@@ -1,6 +1,6 @@
 package CHI::Driver::Null;
 BEGIN {
-  $CHI::Driver::Null::VERSION = '0.38';
+  $CHI::Driver::Null::VERSION = '0.39';
 }
 use Moose;
 use strict;
@@ -22,9 +22,13 @@ sub get_namespaces { return () }
 
 =pod
 
+=head1 NAME
+
+CHI::Driver::Null - nothing is cached
+
 =head1 VERSION
 
-version 0.38
+version 0.39
 
 =head1 SYNOPSIS
 

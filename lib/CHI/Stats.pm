@@ -1,6 +1,6 @@
 package CHI::Stats;
 BEGIN {
-  $CHI::Stats::VERSION = '0.38';
+  $CHI::Stats::VERSION = '0.39';
 }
 use Log::Any qw($log);
 use Moose;
@@ -131,9 +131,13 @@ sub clear {
 
 =pod
 
+=head1 NAME
+
+CHI::Stats - Record and report per-namespace cache statistics
+
 =head1 VERSION
 
-version 0.38
+version 0.39
 
 =head1 SYNOPSIS
 

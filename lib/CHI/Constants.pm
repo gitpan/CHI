@@ -1,6 +1,6 @@
 package CHI::Constants;
 BEGIN {
-  $CHI::Constants::VERSION = '0.38';
+  $CHI::Constants::VERSION = '0.39';
 }
 use strict;
 use warnings;
@@ -23,9 +23,13 @@ use constant CHI_Max_Time       => 0xffffffff;
 
 =pod
 
+=head1 NAME
+
+CHI::Constants - Internal constants
+
 =head1 VERSION
 
-version 0.38
+version 0.39
 
 =head1 DESCRIPTION
 

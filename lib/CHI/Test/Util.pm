@@ -1,6 +1,6 @@
 package CHI::Test::Util;
 BEGIN {
-  $CHI::Test::Util::VERSION = '0.38';
+  $CHI::Test::Util::VERSION = '0.39';
 }
 use Date::Parse;
 use Log::Any::Adapter;

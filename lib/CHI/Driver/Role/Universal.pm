@@ -1,6 +1,6 @@
 package CHI::Driver::Role::Universal;
 BEGIN {
-  $CHI::Driver::Role::Universal::VERSION = '0.38';
+  $CHI::Driver::Role::Universal::VERSION = '0.39';
 }
 use CHI::Constants qw(CHI_Meta_Namespace);
 use Moose::Role;
@@ -28,9 +28,13 @@ around 'remove' => sub {
 
 =pod
 
+=head1 NAME
+
+CHI::Driver::Role::Universal - Universal role applied as the innermost role to all CHI drivers
+
 =head1 VERSION
 
-version 0.38
+version 0.39
 
 =head1 SEE ALSO
 

@@ -1,6 +1,6 @@
 package CHI::Driver::Memory;
 BEGIN {
-  $CHI::Driver::Memory::VERSION = '0.38';
+  $CHI::Driver::Memory::VERSION = '0.39';
 }
 use Carp qw(cluck croak);
 use CHI::Constants qw(CHI_Meta_Namespace);
@@ -99,9 +99,13 @@ sub discard_policy_lru {
 
 =pod
 
+=head1 NAME
+
+CHI::Driver::Memory - In-process memory based cache
+
 =head1 VERSION
 
-version 0.38
+version 0.39
 
 =head1 SYNOPSIS
 
