@@ -1,6 +1,6 @@
 package CHI::t::GetError;
 BEGIN {
-  $CHI::t::GetError::VERSION = '0.39';
+  $CHI::t::GetError::VERSION = '0.40';
 }
 use strict;
 use warnings;

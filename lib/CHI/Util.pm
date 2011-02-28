@@ -1,6 +1,6 @@
 package CHI::Util;
 BEGIN {
-  $CHI::Util::VERSION = '0.39';
+  $CHI::Util::VERSION = '0.40';
 }
 use Carp qw( croak longmess );
 use Class::MOP;
@@ -176,35 +176,4 @@ sub has_moose_class {
 
 1;
 
-
-
-=pod
-
-=head1 NAME
-
-CHI::Util - Utilities for internal CHI use
-
-=head1 VERSION
-
-version 0.39
-
-=head1 SEE ALSO
-
-L<CHI|CHI>
-
-=head1 AUTHOR
-
-Jonathan Swartz <swartz@pobox.com>
-
-=head1 COPYRIGHT AND LICENSE
-
-This software is copyright (c) 2011 by Jonathan Swartz.
-
-This is free software; you can redistribute it and/or modify it under
-the same terms as the Perl 5 programming language system itself.
-
-=cut
-
-
 __END__
-# ABSTRACT: Utilities for internal CHI use

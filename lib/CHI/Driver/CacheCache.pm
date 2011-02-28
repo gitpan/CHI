@@ -1,6 +1,6 @@
 package CHI::Driver::CacheCache;
 BEGIN {
-  $CHI::Driver::CacheCache::VERSION = '0.39';
+  $CHI::Driver::CacheCache::VERSION = '0.40';
 }
 use Cache::Cache;
 use Carp;
@@ -47,7 +47,7 @@ CHI::Driver::CacheCache - CHI wrapper for Cache::Cache
 
 =head1 VERSION
 
-version 0.39
+version 0.40
 
 =head1 SYNOPSIS
 
@@ -99,5 +99,4 @@ the same terms as the Perl 5 programming language system itself.
 
 
 __END__
-#ABSTRACT: CHI wrapper for Cache::Cache
 

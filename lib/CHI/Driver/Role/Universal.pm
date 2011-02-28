@@ -1,6 +1,6 @@
 package CHI::Driver::Role::Universal;
 BEGIN {
-  $CHI::Driver::Role::Universal::VERSION = '0.39';
+  $CHI::Driver::Role::Universal::VERSION = '0.40';
 }
 use CHI::Constants qw(CHI_Meta_Namespace);
 use Moose::Role;
@@ -24,36 +24,8 @@ around 'remove' => sub {
 
 1;
 
-
+__END__
 
 =pod
 
-=head1 NAME
-
-CHI::Driver::Role::Universal - Universal role applied as the innermost role to all CHI drivers
-
-=head1 VERSION
-
-version 0.39
-
-=head1 SEE ALSO
-
-L<CHI|CHI>
-
-=head1 AUTHOR
-
-Jonathan Swartz <swartz@pobox.com>
-
-=head1 COPYRIGHT AND LICENSE
-
-This software is copyright (c) 2011 by Jonathan Swartz.
-
-This is free software; you can redistribute it and/or modify it under
-the same terms as the Perl 5 programming language system itself.
-
 =cut
-
-
-__END__
-# ABSTRACT: Universal role applied as the innermost role to all CHI drivers
-

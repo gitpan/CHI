@@ -2,8 +2,9 @@
 #
 package CHI::Test;
 BEGIN {
-  $CHI::Test::VERSION = '0.39';
+  $CHI::Test::VERSION = '0.40';
 }
+use Log::Any::Test;    # as early as possible
 use List::MoreUtils qw(uniq);
 use Class::MOP;
 use CHI;

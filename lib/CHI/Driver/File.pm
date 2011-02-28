@@ -1,6 +1,6 @@
 package CHI::Driver::File;
 BEGIN {
-  $CHI::Driver::File::VERSION = '0.39';
+  $CHI::Driver::File::VERSION = '0.40';
 }
 use Carp;
 use Cwd qw(realpath cwd);
@@ -19,13 +19,13 @@ use warnings;
 
 extends 'CHI::Driver';
 
+has '+max_key_length'   => ( default => 248 );
 has 'depth'             => ( is => 'ro', isa => 'Int', default => 2 );
 has 'dir_create_mode'   => ( is => 'ro', isa => 'Int', default => oct(775) );
 has 'file_create_mode'  => ( is => 'ro', isa => 'Int', default => oct(666) );
 has 'file_extension'    => ( is => 'ro', isa => 'Str', default => '.dat' );
-has '+max_key_length'   => ( default => 248 );
-has 'root_dir'          => ( is => 'ro', isa => 'Str', default => catdir( tmpdir(), 'chi-driver-file' ) );
 has 'path_to_namespace' => ( is => 'ro', lazy => 1, builder => '_build_path_to_namespace' );
+has 'root_dir'          => ( is => 'ro', isa => 'Str', default => catdir( tmpdir(), 'chi-driver-file' ) );
 
 __PACKAGE__->meta->make_immutable();
 
@@ -242,11 +242,12 @@ sub path_to_key {
 
 =head1 NAME
 
-CHI::Driver::File - File-based cache using one file per entry in a multi-level directory structure
+CHI::Driver::File - File-based cache using one file per entry in a multi-level
+directory structure
 
 =head1 VERSION
 
-version 0.39
+version 0.40
 
 =head1 SYNOPSIS
 
@@ -360,5 +361,4 @@ the same terms as the Perl 5 programming language system itself.
 
 
 __END__
-# ABSTRACT: File-based cache using one file per entry in a multi-level directory structure
 

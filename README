@@ -1,5 +1,8 @@
 NAME
-    CHI -- Unified cache handling interface
+    CHI - Unified cache handling interface
+
+VERSION
+    version 0.40
 
 SYNOPSIS
         use CHI;
@@ -97,7 +100,6 @@ AVAILABILITY OF DRIVERS
 
 RELATION TO OTHER MODULES
   Cache::Cache
-
     CHI is intended as an evolution of DeWitt Clinton's Cache::Cache
     package. It starts with the same basic API (which has proven durable
     over time) but addresses some implementation shortcomings that cannot be
@@ -133,7 +135,6 @@ RELATION TO OTHER MODULES
         overhead and minimum of glue code required.
 
   Cache
-
     The Cache distribution is another redesign and implementation of Cache,
     created by Chris Leishman in 2003. Like CHI, it improves performance and
     reduces the barrier to implementing new cache drivers. It breaks with
@@ -143,7 +144,6 @@ RELATION TO OTHER MODULES
     implement.
 
   Cache::Memcached, Cache::FastMmap, etc.
-
     CPAN sports a variety of full-featured standalone cache modules
     representing particular backends. CHI does not reinvent these but simply
     wraps them with an appropriate driver. For example,
@@ -189,6 +189,7 @@ SUPPORT AND DOCUMENTATION
     Bugs and feature requests will be tracked at RT:
 
         http://rt.cpan.org/NoAuth/Bugs.html?Dist=CHI
+        bug-chi@rt.cpan.org
 
     The latest source code can be browsed and fetched at:
 
@@ -220,19 +221,15 @@ ACKNOWLEDGMENTS
     City. Many thanks to Hearst management for agreeing to this open source
     release.
 
-AUTHOR
-    Jonathan Swartz
-
 SEE ALSO
-    Cache::Cache, Cache::Memcached, Cache::FastMmap
+    Cache::Cache
 
-COPYRIGHT & LICENSE
-    Copyright (C) 2007 Jonathan Swartz.
+AUTHOR
+    Jonathan Swartz <swartz@pobox.com>
 
-    CHI is provided "as is" and without any express or implied warranties,
-    including, without limitation, the implied warranties of merchantibility
-    and fitness for a particular purpose.
+COPYRIGHT AND LICENSE
+    This software is copyright (c) 2011 by Jonathan Swartz.
 
-    This program is free software; you can redistribute it and/or modify it
-    under the same terms as Perl itself.
+    This is free software; you can redistribute it and/or modify it under
+    the same terms as the Perl 5 programming language system itself.
 

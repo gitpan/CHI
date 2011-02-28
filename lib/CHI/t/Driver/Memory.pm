@@ -1,6 +1,6 @@
 package CHI::t::Driver::Memory;
 BEGIN {
-  $CHI::t::Driver::Memory::VERSION = '0.39';
+  $CHI::t::Driver::Memory::VERSION = '0.40';
 }
 use strict;
 use warnings;

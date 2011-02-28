@@ -1,6 +1,6 @@
 package CHI;
 BEGIN {
-  $CHI::VERSION = '0.39';
+  $CHI::VERSION = '0.40';
 }
 use 5.006;
 use Carp;
@@ -83,7 +83,6 @@ sub new {
 
 1;
 
-# ABSTRACT: Unified cache handling interface
 
 
 =pod
@@ -94,7 +93,7 @@ CHI - Unified cache handling interface
 
 =head1 VERSION
 
-version 0.39
+version 0.40
 
 =head1 SYNOPSIS
 
@@ -442,7 +441,7 @@ as soon as it is determined to be expired. But it's something to be aware of.
 
 =back
 
-=item compute( $key, $code, $set_options )
+=item compute( $key, $set_options, $code )
 
 Combines the C<get> and C<set> operations in a single call. Attempts to get
 I<$key>; if successful, returns the value. Otherwise, calls I<$code> and uses
@@ -450,9 +449,17 @@ the return value as the new value for I<$key>, which is then returned.
 I<$set_options> is a scalar or hash reference, used as the third argument to
 set.
 
+    $cache->compute($key, '5min', sub {
+        # compute and return value for $key here
+    });
+
 This method will eventually support the ability to recompute a value in the
 background just before it actually expires, so that users are not impacted by
 recompute time.
+
+Note: Prior to version 0.40, the last two arguments were in reverse order; both
+will be accepted for backward compatibility. We think the code looks better at
+the end.
 
 =back
 
@@ -1106,6 +1113,7 @@ mailing list:
 Bugs and feature requests will be tracked at RT:
 
     http://rt.cpan.org/NoAuth/Bugs.html?Dist=CHI
+    bug-chi@rt.cpan.org
 
 The latest source code can be browsed and fetched at:
 

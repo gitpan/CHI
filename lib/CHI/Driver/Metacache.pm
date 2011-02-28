@@ -1,15 +1,15 @@
 package CHI::Driver::Metacache;
 BEGIN {
-  $CHI::Driver::Metacache::VERSION = '0.39';
+  $CHI::Driver::Metacache::VERSION = '0.40';
 }
 use CHI::Constants qw(CHI_Meta_Namespace);
 use Moose;
 use strict;
 use warnings;
 
-has 'meta_cache'      => ( is => 'ro', builder => '_build_meta_cache' );
-has 'owner_namespace' => ( is => 'ro', lazy_build => 1 );
+has 'meta_cache'      => ( is => 'ro', lazy_build => 1 );
 has 'owner_cache'     => ( is => 'ro', weak_ref => 1 );
+has 'owner_namespace' => ( is => 'ro', lazy_build => 1 );
 
 __PACKAGE__->meta->make_immutable;
 
@@ -62,11 +62,11 @@ sub _prefixed_key {
 
 =head1 NAME
 
-CHI::Driver::Metacache - metacache for internal CHI use
+CHI::Driver::Metacache - Metacache for internal CHI use
 
 =head1 VERSION
 
-version 0.39
+version 0.40
 
 =head1 SYNOPSIS
 
@@ -92,5 +92,4 @@ the same terms as the Perl 5 programming language system itself.
 
 
 __END__
-# ABSTRACT: metacache for internal CHI use
 

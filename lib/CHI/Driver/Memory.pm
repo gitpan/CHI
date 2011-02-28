@@ -1,6 +1,6 @@
 package CHI::Driver::Memory;
 BEGIN {
-  $CHI::Driver::Memory::VERSION = '0.39';
+  $CHI::Driver::Memory::VERSION = '0.40';
 }
 use Carp qw(cluck croak);
 use CHI::Constants qw(CHI_Meta_Namespace);
@@ -105,7 +105,7 @@ CHI::Driver::Memory - In-process memory based cache
 
 =head1 VERSION
 
-version 0.39
+version 0.40
 
 =head1 SYNOPSIS
 
@@ -175,5 +175,4 @@ the same terms as the Perl 5 programming language system itself.
 
 
 __END__
-# ABSTRACT: In-process memory based cache
 

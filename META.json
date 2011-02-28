@@ -13,6 +13,16 @@
       "version" : "2"
    },
    "name" : "CHI",
+   "no_index" : {
+      "directory" : [
+         "lib/CHI/t",
+         "lib/CHI/Test"
+      ],
+      "file" : [
+         "lib/CHI/Driver/Role/Universal.pm",
+         "lib/CHI/Util.pm"
+      ]
+   },
    "prereqs" : {
       "configure" : {
          "requires" : {
@@ -29,7 +39,7 @@
             "Hash::MoreUtils" : 0,
             "JSON" : 0,
             "List::MoreUtils" : "0.13",
-            "Log::Any" : "0.06",
+            "Log::Any" : "0.08",
             "Moose" : "0.66",
             "Storable" : 0,
             "Task::Weaken" : 0,
@@ -41,12 +51,10 @@
       "test" : {
          "requires" : {
             "Date::Parse" : 0,
-            "Log::Any::Adapter::Dispatch" : "0.05",
             "Test::Builder" : 0,
             "Test::Class" : 0,
             "Test::Deep" : 0,
             "Test::Exception" : 0,
-            "Test::Log::Dispatch" : 0,
             "Test::More" : 0,
             "Test::Warn" : 0
          }
@@ -64,6 +72,6 @@
          "web" : "https://github.com/jonswar/perl-chi"
       }
    },
-   "version" : "0.39"
+   "version" : "0.40"
 }
 

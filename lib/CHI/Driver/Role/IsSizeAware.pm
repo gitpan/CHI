@@ -1,6 +1,6 @@
 package CHI::Driver::Role::IsSizeAware;
 BEGIN {
-  $CHI::Driver::Role::IsSizeAware::VERSION = '0.39';
+  $CHI::Driver::Role::IsSizeAware::VERSION = '0.40';
 }
 use Carp::Assert;
 use Moose::Role;

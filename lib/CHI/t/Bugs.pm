@@ -1,6 +1,6 @@
 package CHI::t::Bugs;
 BEGIN {
-  $CHI::t::Bugs::VERSION = '0.39';
+  $CHI::t::Bugs::VERSION = '0.40';
 }
 use strict;
 use warnings;

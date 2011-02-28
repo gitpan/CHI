@@ -13,12 +13,10 @@ my %WriteMakefileArgs = (
   'AUTHOR' => 'Jonathan Swartz <swartz@pobox.com>',
   'BUILD_REQUIRES' => {
     'Date::Parse' => '0',
-    'Log::Any::Adapter::Dispatch' => '0.05',
     'Test::Builder' => '0',
     'Test::Class' => '0',
     'Test::Deep' => '0',
     'Test::Exception' => '0',
-    'Test::Log::Dispatch' => '0',
     'Test::More' => '0',
     'Test::Warn' => '0'
   },
@@ -38,7 +36,7 @@ my %WriteMakefileArgs = (
     'Hash::MoreUtils' => '0',
     'JSON' => '0',
     'List::MoreUtils' => '0.13',
-    'Log::Any' => '0.06',
+    'Log::Any' => '0.08',
     'Moose' => '0.66',
     'Storable' => '0',
     'Task::Weaken' => '0',
@@ -46,7 +44,7 @@ my %WriteMakefileArgs = (
     'Time::Duration::Parse' => '0.03',
     'Try::Tiny' => '0.05'
   },
-  'VERSION' => '0.39',
+  'VERSION' => '0.40',
   'test' => {
     'TESTS' => 't/*.t'
   }

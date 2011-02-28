@@ -1,11 +1,11 @@
 package CHI::t::Driver::File;
 BEGIN {
-  $CHI::t::Driver::File::VERSION = '0.39';
+  $CHI::t::Driver::File::VERSION = '0.40';
 }
 use strict;
 use warnings;
 use CHI::Test;
-use CHI::Test::Util qw(random_string activate_test_logger);
+use CHI::Test::Util qw(random_string);
 use CHI::Util qw(fast_catdir unique_id);
 use File::Basename;
 use File::Path;
@@ -24,7 +24,7 @@ sub new_cache_options {
 {
     package CHI::t::Driver::File::NoTempDriver;
 BEGIN {
-  $CHI::t::Driver::File::NoTempDriver::VERSION = '0.39';
+  $CHI::t::Driver::File::NoTempDriver::VERSION = '0.40';
 }
     use Moose;
     extends 'CHI::Driver::File';
@@ -39,7 +39,7 @@ BEGIN {
 {
     package CHI::t::Driver::File::BadTempDriver;
 BEGIN {
-  $CHI::t::Driver::File::BadTempDriver::VERSION = '0.39';
+  $CHI::t::Driver::File::BadTempDriver::VERSION = '0.40';
 }
     use Moose;
     extends 'CHI::Driver::File';

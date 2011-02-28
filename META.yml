@@ -4,12 +4,10 @@ author:
   - 'Jonathan Swartz <swartz@pobox.com>'
 build_requires:
   Date::Parse: 0
-  Log::Any::Adapter::Dispatch: 0.05
   Test::Builder: 0
   Test::Class: 0
   Test::Deep: 0
   Test::Exception: 0
-  Test::Log::Dispatch: 0
   Test::More: 0
   Test::Warn: 0
 configure_requires:
@@ -21,6 +19,13 @@ meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
 name: CHI
+no_index:
+  directory:
+    - lib/CHI/t
+    - lib/CHI/Test
+  file:
+    - lib/CHI/Driver/Role/Universal.pm
+    - lib/CHI/Util.pm
 requires:
   Carp::Assert: 0.20
   Data::UUID: 0
@@ -30,7 +35,7 @@ requires:
   Hash::MoreUtils: 0
   JSON: 0
   List::MoreUtils: 0.13
-  Log::Any: 0.06
+  Log::Any: 0.08
   Moose: 0.66
   Storable: 0
   Task::Weaken: 0
@@ -40,4 +45,4 @@ requires:
 resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=CHI
   repository: git://github.com/jonswar/perl-chi.git
-version: 0.39
+version: 0.40

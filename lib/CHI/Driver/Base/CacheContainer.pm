@@ -1,6 +1,6 @@
 package CHI::Driver::Base::CacheContainer;
 BEGIN {
-  $CHI::Driver::Base::CacheContainer::VERSION = '0.39';
+  $CHI::Driver::Base::CacheContainer::VERSION = '0.40';
 }
 use Moose;
 use Moose::Util::TypeConstraints;
@@ -62,7 +62,7 @@ CHI::Driver::Base::CacheContainer - Caches that delegate to a contained cache
 
 =head1 VERSION
 
-version 0.39
+version 0.40
 
 =head1 DESCRIPTION
 
@@ -88,5 +88,4 @@ the same terms as the Perl 5 programming language system itself.
 
 
 __END__
-# ABSTRACT: Caches that delegate to a contained cache
 

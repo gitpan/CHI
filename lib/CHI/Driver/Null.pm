@@ -1,6 +1,6 @@
 package CHI::Driver::Null;
 BEGIN {
-  $CHI::Driver::Null::VERSION = '0.39';
+  $CHI::Driver::Null::VERSION = '0.40';
 }
 use Moose;
 use strict;
@@ -24,11 +24,11 @@ sub get_namespaces { return () }
 
 =head1 NAME
 
-CHI::Driver::Null - nothing is cached
+CHI::Driver::Null - Nothing is cached
 
 =head1 VERSION
 
-version 0.39
+version 0.40
 
 =head1 SYNOPSIS
 
@@ -62,5 +62,4 @@ the same terms as the Perl 5 programming language system itself.
 
 
 __END__
-# ABSTRACT: nothing is cached
 
