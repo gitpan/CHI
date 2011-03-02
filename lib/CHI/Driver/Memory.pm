@@ -1,6 +1,6 @@
 package CHI::Driver::Memory;
 BEGIN {
-  $CHI::Driver::Memory::VERSION = '0.40';
+  $CHI::Driver::Memory::VERSION = '0.41';
 }
 use Carp qw(cluck croak);
 use CHI::Constants qw(CHI_Meta_Namespace);
@@ -105,7 +105,7 @@ CHI::Driver::Memory - In-process memory based cache
 
 =head1 VERSION
 
-version 0.40
+version 0.41
 
 =head1 SYNOPSIS
 
@@ -122,9 +122,11 @@ This cache driver stores data on a per-process basis.  This is the fastest of
 the cache implementations, but data can not be shared between processes.  Data
 will remain in the cache until cleared, expired, or the process dies.
 
-To maintain the same semantics as other caches, data structures are deep-copied
-on set and get. Thus, modifications to the original data structure will not
-affect the data structure stored in the cache, and vica versa.
+To maintain the same semantics as other caches, references to data structures
+are deep-copied on set and get. Thus, modifications to the original data
+structure will not affect the data structure stored in the cache, and vica
+versa. See L<CHI::Driver::RawMemory> for a faster memory cache that sacrifices
+this behavior.
 
 =head1 CONSTRUCTOR OPTIONS
 
@@ -158,7 +160,7 @@ policy.
 
 =head1 SEE ALSO
 
-L<CHI|CHI>
+L<CHI::Driver::RawMemory>, L<CHI>
 
 =head1 AUTHOR
 

@@ -1,6 +1,6 @@
 package CHI;
 BEGIN {
-  $CHI::VERSION = '0.40';
+  $CHI::VERSION = '0.41';
 }
 use 5.006;
 use Carp;
@@ -93,7 +93,7 @@ CHI - Unified cache handling interface
 
 =head1 VERSION
 
-version 0.40
+version 0.41
 
 =head1 SYNOPSIS
 
@@ -102,6 +102,7 @@ version 0.40
     # Choose a standard driver
     #
     my $cache = CHI->new( driver => 'Memory', global => 1 );
+    my $cache = CHI->new( driver => 'RawMemory', global => 1 );
     my $cache = CHI->new( driver => 'File',
         root_dir => '/path/to/root'
     );
@@ -109,7 +110,7 @@ version 0.40
         root_dir   => '/path/to/root',
         cache_size => '1k'
     );
-    my $cache = CHI->new( driver  => 'Memcached',
+    my $cache = CHI->new( driver  => 'Memcached::libmemcached',
         servers => [ "10.0.0.15:11211", "10.0.0.15:11212" ],
         l1_cache => { driver => 'FastMmap', root_dir => '/path/to/root' }
     );
@@ -122,15 +123,18 @@ version 0.40
 
     # Create your own driver
     # 
-    my $cache = CHI->new( driver_class => 'My::Special::Driver' );
+    my $cache = CHI->new( driver_class => 'My::Special::Driver', ... );
 
-    # Basic cache operations
+    # Cache operations
     #
     my $customer = $cache->get($name);
     if ( !defined $customer ) {
         $customer = get_customer_from_db($name);
         $cache->set( $name, $customer, "10 minutes" );
     }
+    my $customer2 = $cache->compute($name2, "10 minutes", sub {
+        get_customer_from_db($name2)
+    });
     $cache->remove($name);
 
 =head1 DESCRIPTION
@@ -458,8 +462,8 @@ background just before it actually expires, so that users are not impacted by
 recompute time.
 
 Note: Prior to version 0.40, the last two arguments were in reverse order; both
-will be accepted for backward compatibility. We think the code looks better at
-the end.
+will be accepted for backward compatibility. We think the coderef looks better
+at the end.
 
 =back
 
@@ -943,6 +947,11 @@ L<CHI::Driver::Memory|CHI::Driver::Memory> - In-process memory based cache
 
 =item *
 
+L<CHI::Driver::RawMemory|CHI::Driver::RawMemory> - In-process memory based
+cache that stores references directly instead of deep-copying
+
+=item *
+
 L<CHI::Driver::File|CHI::Driver::File> - File-based cache using one file per
 entry in a multi-level directory structure
 
@@ -981,12 +990,24 @@ L<CHI::Driver::DBI|CHI::Driver::DBI> - Cache in any DBI-supported database
 
 L<CHI::Driver::BerkeleyDB|CHI::Driver::BerkeleyDB> - Cache in BerkeleyDB files
 
+=item *
+
+L<CHI::Driver::Redis|CHI::Driver::Redis> - Cache in L<Redis|http://redis.io/>
+
 =back
 
 This list is likely incomplete. A complete set of drivers can be found on CPAN
 by searching for "CHI::Driver".
 
 =for readme stop
+
+=head1 PERFORMANCE COMPARISON OF DRIVERS
+
+See L<CHI::Benchmarks> for a comparison of read/write times of both CHI and
+non-CHI cache implementations.
+
+C<etc/bench/bench.pl> in the C<CHI> distribution contains a script to run these
+types of benchmarks on your own system.
 
 =head1 DEVELOPING NEW DRIVERS
 

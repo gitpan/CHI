@@ -2,6 +2,17 @@ Revision history for CHI
 
 ** denotes an incompatible change
 
+0.41  Mar 1, 2011
+
+* Improvements
+  - Add RawMemory driver, a faster version of Memory that does not serialize/deserialize
+    values
+  - Add etc/bench/bench.pl for benchmarking CHI and non-CHI caches
+  - Publish current benchmarking results in CHI::Benchmarks
+
+* Testing
+  - Stop using test counts (http://stackoverflow.com/questions/690342/)
+
 0.40  Feb 27, 2011
 
 * Improvements

@@ -1,6 +1,6 @@
 package CHI::t::Subclass;
 BEGIN {
-  $CHI::t::Subclass::VERSION = '0.40';
+  $CHI::t::Subclass::VERSION = '0.41';
 }
 use strict;
 use warnings;
@@ -12,7 +12,7 @@ use base qw(CHI::Test::Class);
 {
     package CHI::t::Subclass::Driver::HasUnsupported;
 BEGIN {
-  $CHI::t::Subclass::Driver::HasUnsupported::VERSION = '0.40';
+  $CHI::t::Subclass::Driver::HasUnsupported::VERSION = '0.41';
 }
     use Moose;
     extends 'CHI::Driver::Memory';
@@ -20,7 +20,7 @@ BEGIN {
     __PACKAGE__->meta->make_immutable;
 }
 
-sub test_unsupported : Tests(2) {
+sub test_unsupported : Tests {
     my $cache = CHI->new(
         driver_class => 'CHI::t::Subclass::Driver::HasUnsupported',
         global       => 1

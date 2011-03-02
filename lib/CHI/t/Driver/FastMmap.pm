@@ -1,6 +1,6 @@
 package CHI::t::Driver::FastMmap;
 BEGIN {
-  $CHI::t::Driver::FastMmap::VERSION = '0.40';
+  $CHI::t::Driver::FastMmap::VERSION = '0.41';
 }
 use strict;
 use warnings;
@@ -23,7 +23,7 @@ sub new_cache_options {
     return ( $self->SUPER::new_cache_options(), root_dir => $root_dir );
 }
 
-sub test_fm_cache : Test(4) {
+sub test_fm_cache : Tests {
     my ($self) = @_;
 
     # Create brand new cache and check defaults
@@ -44,7 +44,7 @@ sub test_fm_cache : Test(4) {
     }
 }
 
-sub test_parameter_passthrough : Test(2) {
+sub test_parameter_passthrough : Tests {
     my ($self) = @_;
 
     my $cache = $self->new_cache( cache_size => '500k' );
@@ -62,7 +62,7 @@ sub test_parameter_passthrough : Test(2) {
     );
 }
 
-sub test_value_too_large : Tests(2) {
+sub test_value_too_large : Tests {
     my ($self) = @_;
 
     my $cache = $self->new_cache(

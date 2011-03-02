@@ -1,6 +1,6 @@
 package CHI::t::RequiredModules;
 BEGIN {
-  $CHI::t::RequiredModules::VERSION = '0.40';
+  $CHI::t::RequiredModules::VERSION = '0.41';
 }
 use strict;
 use warnings;
@@ -9,7 +9,7 @@ use base qw(CHI::Test::Class);
 
 sub required_modules { return { 'Data::Dumper' => undef, 'blarg' => undef } }
 
-sub test_blarg : Test(1) {
+sub test_blarg : Tests {
     require Blarg;
     Blarg->funny();
 }

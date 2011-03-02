@@ -1,13 +1,13 @@
 package CHI::t::Null;
 BEGIN {
-  $CHI::t::Null::VERSION = '0.40';
+  $CHI::t::Null::VERSION = '0.41';
 }
 use strict;
 use warnings;
 use CHI::Test;
 use base qw(CHI::Test::Class);
 
-sub test_basic : Test(3) {
+sub test_basic : Tests {
     my ( $key, $value ) = ( 'medium', 'medium' );
     my $cache = CHI->new( driver => 'Null' );
     $cache->set( $key, $value );

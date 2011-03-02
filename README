@@ -2,7 +2,7 @@ NAME
     CHI - Unified cache handling interface
 
 VERSION
-    version 0.40
+    version 0.41
 
 SYNOPSIS
         use CHI;
@@ -10,6 +10,7 @@ SYNOPSIS
         # Choose a standard driver
         #
         my $cache = CHI->new( driver => 'Memory', global => 1 );
+        my $cache = CHI->new( driver => 'RawMemory', global => 1 );
         my $cache = CHI->new( driver => 'File',
             root_dir => '/path/to/root'
         );
@@ -17,7 +18,7 @@ SYNOPSIS
             root_dir   => '/path/to/root',
             cache_size => '1k'
         );
-        my $cache = CHI->new( driver  => 'Memcached',
+        my $cache = CHI->new( driver  => 'Memcached::libmemcached',
             servers => [ "10.0.0.15:11211", "10.0.0.15:11212" ],
             l1_cache => { driver => 'FastMmap', root_dir => '/path/to/root' }
         );
@@ -30,15 +31,18 @@ SYNOPSIS
 
         # Create your own driver
         # 
-        my $cache = CHI->new( driver_class => 'My::Special::Driver' );
+        my $cache = CHI->new( driver_class => 'My::Special::Driver', ... );
 
-        # Basic cache operations
+        # Cache operations
         #
         my $customer = $cache->get($name);
         if ( !defined $customer ) {
             $customer = get_customer_from_db($name);
             $cache->set( $name, $customer, "10 minutes" );
         }
+        my $customer2 = $cache->compute($name2, "10 minutes", sub {
+            get_customer_from_db($name2)
+        });
         $cache->remove($name);
 
 DESCRIPTION
@@ -74,6 +78,9 @@ AVAILABILITY OF DRIVERS
 
     *   CHI::Driver::Memory - In-process memory based cache
 
+    *   CHI::Driver::RawMemory - In-process memory based cache that stores
+        references directly instead of deep-copying
+
     *   CHI::Driver::File - File-based cache using one file per entry in a
         multi-level directory structure
 
@@ -94,6 +101,8 @@ AVAILABILITY OF DRIVERS
     *   CHI::Driver::DBI - Cache in any DBI-supported database
 
     *   CHI::Driver::BerkeleyDB - Cache in BerkeleyDB files
+
+    *   CHI::Driver::Redis - Cache in Redis
 
     This list is likely incomplete. A complete set of drivers can be found
     on CPAN by searching for "CHI::Driver".

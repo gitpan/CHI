@@ -1,6 +1,6 @@
 package CHI::Test::Util;
 BEGIN {
-  $CHI::Test::Util::VERSION = '0.40';
+  $CHI::Test::Util::VERSION = '0.41';
 }
 use Date::Parse;
 use Test::Builder;

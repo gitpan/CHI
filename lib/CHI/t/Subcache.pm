@@ -1,6 +1,6 @@
 package CHI::t::Subcache;
 BEGIN {
-  $CHI::t::Subcache::VERSION = '0.40';
+  $CHI::t::Subcache::VERSION = '0.41';
 }
 use CHI::Test;
 use CHI::Util qw(can_load);
@@ -8,7 +8,7 @@ use base qw(CHI::Test::Class);
 use strict;
 use warnings;
 
-sub test_option_inheritance : Tests(8) {
+sub test_option_inheritance : Tests {
     my $self = shift;
 
     return 'Data::Serializer not installed'
@@ -34,7 +34,7 @@ sub test_option_inheritance : Tests(8) {
     is( $cache->l1_cache->depth, 2, 'l1 cache depth' );
 }
 
-sub test_bad_subcache_option : Tests(1) {
+sub test_bad_subcache_option : Tests {
     my $self = shift;
     throws_ok(
         sub {

@@ -1,6 +1,6 @@
 package CHI::t::SetError;
 BEGIN {
-  $CHI::t::SetError::VERSION = '0.40';
+  $CHI::t::SetError::VERSION = '0.41';
 }
 use strict;
 use warnings;
@@ -18,7 +18,7 @@ sub readonly_cache {
     );
 }
 
-sub test_set_errors : Test(14) {
+sub test_set_errors : Tests {
     my ( $key, $value ) = ( 'medium', 'medium' );
 
     my $error_pattern =

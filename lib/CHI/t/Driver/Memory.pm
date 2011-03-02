@@ -1,6 +1,6 @@
 package CHI::t::Driver::Memory;
 BEGIN {
-  $CHI::t::Driver::Memory::VERSION = '0.40';
+  $CHI::t::Driver::Memory::VERSION = '0.41';
 }
 use strict;
 use warnings;
@@ -37,7 +37,7 @@ sub new_cache {
     return $cache;
 }
 
-sub test_short_driver_name : Tests(1) {
+sub test_short_driver_name : Tests {
     my ($self) = @_;
 
     my $cache = $self->{cache};
@@ -46,7 +46,7 @@ sub test_short_driver_name : Tests(1) {
 
 # Warn if global or datastore not passed, but still use global datastore by default
 #
-sub test_global_or_datastore_required : Tests(3) {
+sub test_global_or_datastore_required : Tests {
     my ( $cache, $cache2 );
     warning_like( sub { $cache = CHI->new( driver => 'Memory' ) },
         qr/must specify either/ );
@@ -58,7 +58,7 @@ sub test_global_or_datastore_required : Tests(3) {
 
 # Make sure two caches don't share datastore
 #
-sub test_different_datastores : Tests(1) {
+sub test_different_datastores : Tests {
     my $self   = shift;
     my $cache1 = CHI->new( driver => 'Memory', datastore => {} );
     my $cache2 = CHI->new( driver => 'Memory', datastore => {} );
@@ -91,7 +91,7 @@ sub test_clear_datastore : Tests {
     }
 }
 
-sub test_lru_discard : Tests(2) {
+sub test_lru_discard : Tests {
     my $self = shift;
     my $cache = $self->new_cleared_cache( max_size => 41 );
     is( $cache->discard_policy, 'lru' );

@@ -1,6 +1,6 @@
 package CHI::t::Driver::Subcache::l1_cache;
 BEGIN {
-  $CHI::t::Driver::Subcache::l1_cache::VERSION = '0.40';
+  $CHI::t::Driver::Subcache::l1_cache::VERSION = '0.41';
 }
 use strict;
 use warnings;
@@ -27,7 +27,7 @@ sub new_cache_options {
     );
 }
 
-sub test_stats : Test(3) {
+sub test_stats : Tests {
     my $self = shift;
 
     my $stats = $self->testing_chi_root_class->stats;

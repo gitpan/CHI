@@ -1,6 +1,6 @@
 package CHI::Driver;
 BEGIN {
-  $CHI::Driver::VERSION = '0.40';
+  $CHI::Driver::VERSION = '0.41';
 }
 use Carp;
 use CHI::CacheObject;
@@ -83,6 +83,8 @@ sub declare_unsupported_methods {
     }
 }
 
+sub cache_object_class { 'CHI::CacheObject' }
+
 # To override time() for testing - must be writable in a dynamically scoped way from tests
 our $Test_Time;    ## no critic (ProhibitPackageVars)
 our $Build_Depth = 0;    ## no critic (ProhibitPackageVars)
@@ -145,28 +147,22 @@ sub get {
     my ( $self, $key, %params ) = @_;
 
     croak "must specify key" unless defined($key);
-    $key = $self->transform_key($key);
     my $ns_stats = $self->{ns_stats};
 
     # Fetch cache object
     #
-    my $data = $params{data};
-    if ( !defined $data ) {
-        $data = eval { $self->fetch($key) };
-        if ( my $error = $@ ) {
-            $ns_stats->{'get_errors'}++ if defined($ns_stats);
-            $self->_handle_get_error( $error, $key );
-            return undef;
-        }
+    my $obj = eval { $params{obj} || $self->get_object($key) };
+    if ( my $error = $@ ) {
+        $ns_stats->{'get_errors'}++ if defined($ns_stats);
+        $self->_handle_get_error( $error, $key );
+        return undef;
     }
-
-    if ( !defined $data ) {
+    if ( !defined $obj ) {
         $ns_stats->{'absent_misses'}++ if defined($ns_stats);
         $self->_log_get_result( $log, "MISS (not in cache)", $key )
           if $log->is_debug;
         return undef;
     }
-    my $obj = $self->unpack_from_data( $key, $data );
     if ( defined( my $obj_ref = $params{obj_ref} ) ) {
         $$obj_ref = $obj;
     }
@@ -202,7 +198,8 @@ sub get {
 sub unpack_from_data {
     my ( $self, $key, $data ) = @_;
 
-    return CHI::CacheObject->unpack_from_data( $key, $data, $self->serializer );
+    return $self->cache_object_class->unpack_from_data( $key, $data,
+        $self->serializer );
 }
 
 sub get_object {
@@ -311,8 +308,8 @@ sub set_with_options {
     # Pack into data, and store
     #
     my $obj =
-      CHI::CacheObject->new( $key, $value, $created_at, $early_expires_at,
-        $expires_at, $self->serializer );
+      $self->cache_object_class->new( $key, $value, $created_at,
+        $early_expires_at, $expires_at, $self->serializer );
     if ( defined( my $obj_ref = $options->{obj_ref} ) ) {
         $$obj_ref = $obj;
     }
@@ -431,17 +428,31 @@ sub fetch_multi_hashref {
     return { map { ( $_, $self->fetch($_) ) } @$keys };
 }
 
+sub get_multi_hashref_objects {
+    my ( $self, $keys ) = @_;
+    my $key_data = $self->fetch_multi_hashref($keys);
+    return {
+        map {
+            my $data = $key_data->{$_};
+            defined($data)
+              ? ( $_, $self->unpack_from_data( $_, $data ) )
+              : ( $_, undef )
+          } keys(%$key_data)
+    };
+}
+
 sub get_multi_arrayref {
     my ( $self, $keys ) = @_;
     croak "must specify keys" unless defined($keys);
     my $transformed_keys = [ map { $self->transform_key($_) } @$keys ];
 
     my $key_count = scalar(@$keys);
-    my $keyvals   = $self->fetch_multi_hashref($transformed_keys);
+    my $keyobjs   = $self->get_multi_hashref_objects($transformed_keys);
     return [
         map {
-            $self->get( $keys->[$_],
-                data => $keyvals->{ $transformed_keys->[$_] } )
+            my $key = $transformed_keys->[$_];
+            my $obj = $keyobjs->{$key};
+            $obj ? $self->get( $key, obj => $obj ) : undef
           } ( 0 .. $key_count - 1 )
     ];
 }
@@ -630,7 +641,7 @@ CHI::Driver - Base class for all CHI drivers
 
 =head1 VERSION
 
-version 0.40
+version 0.41
 
 =head1 DESCRIPTION
 
