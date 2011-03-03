@@ -1,6 +1,6 @@
 package CHI::Driver::RawMemory;
 BEGIN {
-  $CHI::Driver::RawMemory::VERSION = '0.41';
+  $CHI::Driver::RawMemory::VERSION = '0.42';
 }
 use Moose;
 use strict;
@@ -24,7 +24,7 @@ CHI::Driver::RawMemory - In-process memory cache that stores direct references
 
 =head1 VERSION
 
-version 0.41
+version 0.42
 
 =head1 SYNOPSIS
 
@@ -70,6 +70,10 @@ good way to determine their size.)
     # Keep a maximum of 10 items in cache
     #
     my $cache = CHI->new( driver => 'RawMemory', datastore => {}, max_size => 10 );
+
+=head1 ACKNOWLEDGEMENTS
+
+Thanks to Yuval Kogman whose L<Cache::Ref> inspired me to do this.
 
 =head1 SEE ALSO
 

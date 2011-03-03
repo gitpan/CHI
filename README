@@ -2,7 +2,7 @@ NAME
     CHI - Unified cache handling interface
 
 VERSION
-    version 0.41
+    version 0.42
 
 SYNOPSIS
         use CHI;

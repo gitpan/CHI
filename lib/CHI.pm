@@ -1,6 +1,6 @@
 package CHI;
 BEGIN {
-  $CHI::VERSION = '0.41';
+  $CHI::VERSION = '0.42';
 }
 use 5.006;
 use Carp;
@@ -93,7 +93,7 @@ CHI - Unified cache handling interface
 
 =head1 VERSION
 
-version 0.41
+version 0.42
 
 =head1 SYNOPSIS
 
@@ -840,7 +840,7 @@ have its own subcaches, and so on. e.g.
         l1_cache => {
             driver     => 'File',
             root_dir   => '/path/to/root',
-            l1_cache   => { driver => 'Memory' }
+            l1_cache   => { driver => 'RawMemory' }
         }
     );
 

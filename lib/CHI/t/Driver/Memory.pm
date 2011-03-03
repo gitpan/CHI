@@ -1,6 +1,6 @@
 package CHI::t::Driver::Memory;
 BEGIN {
-  $CHI::t::Driver::Memory::VERSION = '0.41';
+  $CHI::t::Driver::Memory::VERSION = '0.42';
 }
 use strict;
 use warnings;
@@ -96,7 +96,7 @@ sub test_lru_discard : Tests {
     my $cache = $self->new_cleared_cache( max_size => 41 );
     is( $cache->discard_policy, 'lru' );
     my $value_20 = 'x' x 6;
-    foreach my $key ( map { "key$_" } qw(1 2 3 4 5 6 5 6 5 3 2) ) {
+    foreach my $key ( map { "key$_" } (qw(1 2 3 4 5 6 5 6 5 3 2)) ) {
         $cache->set( $key, $value_20 );
     }
     cmp_set( [ $cache->get_keys ], [ "key2", "key3" ] );

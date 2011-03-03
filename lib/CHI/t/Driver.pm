@@ -1,6 +1,6 @@
 package CHI::t::Driver;
 BEGIN {
-  $CHI::t::Driver::VERSION = '0.41';
+  $CHI::t::Driver::VERSION = '0.42';
 }
 use strict;
 use warnings;
@@ -276,7 +276,7 @@ sub test_deep_copy : Tests {
     my $cache = $self->{cache};
 
     $self->set_some_keys($cache);
-    foreach my $keyname qw(arrayref hashref) {
+    foreach my $keyname (qw(arrayref hashref)) {
         my $key   = $self->{keys}->{$keyname};
         my $value = $self->{values}->{$keyname};
         cmp_deeply( $cache->get($key), $value,
@@ -564,7 +564,7 @@ sub test_serialize : Tests {
 {
     package DummySerializer;
 BEGIN {
-  $DummySerializer::VERSION = '0.41';
+  $DummySerializer::VERSION = '0.42';
 }
     sub serialize   { }
     sub deserialize { }
