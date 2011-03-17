@@ -1,6 +1,6 @@
 package CHI::CacheObject;
 BEGIN {
-  $CHI::CacheObject::VERSION = '0.42';
+  $CHI::CacheObject::VERSION = '0.43';
 }
 use CHI::Constants qw(CHI_Max_Time);
 use Encode;
@@ -21,6 +21,7 @@ use constant f_size             => 10;
 
 use constant T_SERIALIZED   => 1;
 use constant T_UTF8_ENCODED => 2;
+use constant T_COMPRESSED   => 4;
 
 my $Metadata_Format = "LLLCC";
 my $Metadata_Length = 14;
@@ -46,12 +47,10 @@ sub set_expires_at {
     undef $_[0]->[f_packed_data];
 }
 
-sub serialize_and_encode { 1 }
-
 ## no critic (ProhibitManyArgs)
 sub new {
     my ( $class, $key, $value, $created_at, $early_expires_at, $expires_at,
-        $serializer )
+        $serializer, $compress_threshold )
       = @_;
 
     # Serialize/encode value if necessary - does this belong here, or in
@@ -62,12 +61,19 @@ sub new {
     my $size;
     if ($serializer) {
         if ( ref($raw_value) ) {
-            $raw_value      = $serializer->serialize($raw_value);
-            $is_transformed = T_SERIALIZED;
+            $raw_value = $serializer->serialize($raw_value);
+            $is_transformed |= T_SERIALIZED;
         }
         elsif ( Encode::is_utf8($raw_value) ) {
             $raw_value = Encode::encode( utf8 => $raw_value );
-            $is_transformed = T_UTF8_ENCODED;
+            $is_transformed |= T_UTF8_ENCODED;
+        }
+        if ( defined($compress_threshold)
+            && length($raw_value) > $compress_threshold )
+        {
+            require Compress::Zlib;
+            $raw_value = Compress::Zlib::memGzip($raw_value);
+            $is_transformed |= T_COMPRESSED;
         }
         $size = length($raw_value) + $Metadata_Length;
     }
@@ -140,11 +146,16 @@ sub value {
     my ($self) = @_;
 
     if ( !defined $self->[f_value] ) {
-        my $value = $self->[f_raw_value];
-        if ( $self->[f_is_transformed] == T_SERIALIZED ) {
+        my $value          = $self->[f_raw_value];
+        my $is_transformed = $self->[f_is_transformed];
+        if ( $is_transformed & T_COMPRESSED ) {
+            require Compress::Zlib;
+            $value = Compress::Zlib::memGunzip($value);
+        }
+        if ( $is_transformed & T_SERIALIZED ) {
             $value = $self->serializer->deserialize($value);
         }
-        elsif ( $self->[f_is_transformed] == T_UTF8_ENCODED ) {
+        elsif ( $is_transformed & T_UTF8_ENCODED ) {
             $value = Encode::decode( utf8 => $value );
         }
         $self->[f_value] = $value;
@@ -169,7 +180,7 @@ CHI::CacheObject - Contains information about cache entries
 
 =head1 VERSION
 
-version 0.42
+version 0.43
 
 =head1 SYNOPSIS
 

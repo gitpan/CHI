@@ -1,6 +1,6 @@
 package CHI::t::Driver;
 BEGIN {
-  $CHI::t::Driver::VERSION = '0.42';
+  $CHI::t::Driver::VERSION = '0.43';
 }
 use strict;
 use warnings;
@@ -564,7 +564,7 @@ sub test_serialize : Tests {
 {
     package DummySerializer;
 BEGIN {
-  $DummySerializer::VERSION = '0.42';
+  $DummySerializer::VERSION = '0.43';
 }
     sub serialize   { }
     sub deserialize { }
@@ -946,13 +946,13 @@ sub _test_logging_with_l1_cache {
         qr/cache get for .* key='$key', cache='.*l1.*': $miss_not_in_cache/);
     $log->empty_ok();
 
-    $cache->set( $key, $value, 80 );
+    $cache->set( $key, $value, 81 );
     $log->contains_ok(
-        qr/cache set for .* key='$key', size=\d+, expires='1m20s', cache='$driver'/
+        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='$driver'/
     );
 
     $log->contains_ok(
-        qr/cache set for .* key='$key', size=\d+, expires='1m20s', cache='.*l1.*'/
+        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='.*l1.*'/
     );
     $log->empty_ok();
 
@@ -996,13 +996,13 @@ sub _test_logging_with_mirror_cache {
         qr/cache get for .* key='$key', cache='$driver': $miss_not_in_cache/);
     $log->empty_ok();
 
-    $cache->set( $key, $value, 80 );
+    $cache->set( $key, $value, 81 );
     $log->contains_ok(
-        qr/cache set for .* key='$key', size=\d+, expires='1m20s', cache='$driver'/
+        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='$driver'/
     );
 
     $log->contains_ok(
-        qr/cache set for .* key='$key', size=\d+, expires='1m20s', cache='.*mirror.*'/
+        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='.*mirror.*'/
     );
     $log->empty_ok();
 
@@ -1180,9 +1180,9 @@ sub test_logging : Tests {
         qr/cache set for .* key='$key', size=\d+, expires='never', cache='$driver'/
     );
     $log->empty_ok();
-    $cache->set( $key, $value, 80 );
+    $cache->set( $key, $value, 81 );
     $log->contains_ok(
-        qr/cache set for .* key='$key', size=\d+, expires='1m20s', cache='$driver'/
+        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='$driver'/
     );
     $log->empty_ok();
 
@@ -1678,6 +1678,26 @@ sub test_compute : Tests {
         is( $cache->get_object('foo')->expires_at, $expire_time,
             "expire time" );
     }
+}
+
+sub test_compress_threshold : Tests {
+    my $self  = shift;
+    my $cache = $self->{cache};
+
+    my $s0 = 'x' x 180;
+    my $s1 = 'x' x 200;
+    $cache->set( 'key0', $s0 );
+    $cache->set( 'key1', $s1 );
+    is_between( $cache->get_object('key0')->size, 180, 220 );
+    is_between( $cache->get_object('key1')->size, 200, 240 );
+
+    my $cache2 = $self->new_cache( compress_threshold => 190 );
+    $cache2->set( 'key0', $s0 );
+    $cache2->set( 'key1', $s1 );
+    is_between( $cache2->get_object('key0')->size, 180, 220 );
+    ok( $cache2->get_object('key1')->size < 100 );
+    is( $cache2->get('key0'), $s0 );
+    is( $cache2->get('key1'), $s1 );
 }
 
 1;

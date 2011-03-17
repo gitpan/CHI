@@ -1,6 +1,6 @@
 package CHI;
 BEGIN {
-  $CHI::VERSION = '0.42';
+  $CHI::VERSION = '0.43';
 }
 use 5.006;
 use Carp;
@@ -93,7 +93,7 @@ CHI - Unified cache handling interface
 
 =head1 VERSION
 
-version 0.42
+version 0.43
 
 =head1 SYNOPSIS
 
@@ -192,6 +192,16 @@ be passed.
 
 =over
 
+=item compress_threshold [INT]
+
+A value in bytes. Automatically compress values larger than this before
+storing.  Requires L<Compress::Zlib|Compress::Zlib> to be installed. Defaults
+to undef, meaning no automatic compression. Inspired by the parameter of the
+same name in L<Cache::Memcached>.
+
+    # Compress values larger than 1MB
+    compress_threshold => 1024*1024
+
 =item driver [STRING]
 
 The name of a standard driver to drive the cache, for example "Memory" or
@@ -220,6 +230,12 @@ Digest->new(). You will need to ensure Digest is installed to use these
 options.
 
 Default is "MD5".
+
+=item key_serializer [STRING|HASHREF|OBJECT]
+
+An object to use for serializing keys that are references. See L</serializer>
+above for the different ways this can be passed in. The default is to use JSON
+in canonical mode (sorted hash keys).
 
 =item label [STRING]
 
@@ -273,39 +289,6 @@ will set the namespace to the current component path.
 
 Defaults to 'Default' if not specified.
 
-=item serializer [STRING|HASHREF|OBJECT]
-
-An object to use for serializing data before storing it in the cache, and
-deserializing data after retrieving it from the cache.
-
-If this is a string, a L<Data::Serializer|Data::Serializer> object will be
-created, with the string passed as the 'serializer' option and raw=1. Common
-options include 'Storable', 'Data::Dumper', and 'YAML'. If this is a hashref,
-L<Data::Serializer|Data::Serializer-E<gt>new> will be called with the hash. You
-will need to ensure Data::Serializer is installed to use these options.
-
-Otherwise, this must be a L<Data::Serializer|Data::Serializer> object or
-another object that implements I<serialize()> and I<deserialize()>.
-
-e.g.
-
-    # Serialize using raw Data::Dumper
-    my $cache = CHI->new(serializer => 'Data::Dumper');
-
-    # Serialize using Data::Dumper, compressed and (per Data::Serializer defaults) hex-encoded
-    my $cache = CHI->new(serializer => { serializer => 'Data::Dumper', compress => 1 });
-
-    # Serialize using custom object
-    my $cache = CHI->new(serializer => My::Custom::Serializer->new())
-
-The default is to use raw Storable.
-
-=item key_serializer [STRING|HASHREF|OBJECT]
-
-An object to use for serializing keys that are references. See L</serializer>
-above for the different ways this can be passed in. The default is to use JSON
-in canonical mode (sorted hash keys).
-
 =item on_get_error [STRING|CODEREF]
 
 =item on_set_error [STRING|CODEREF]
@@ -338,6 +321,33 @@ I<coderef> - call this code reference with three arguments: an appropriate
 message, the key, and the original raw error message
 
 =back
+
+=item serializer [STRING|HASHREF|OBJECT]
+
+An object to use for serializing data before storing it in the cache, and
+deserializing data after retrieving it from the cache.
+
+If this is a string, a L<Data::Serializer|Data::Serializer> object will be
+created, with the string passed as the 'serializer' option and raw=1. Common
+options include 'Storable', 'Data::Dumper', and 'YAML'. If this is a hashref,
+L<Data::Serializer|Data::Serializer-E<gt>new> will be called with the hash. You
+will need to ensure Data::Serializer is installed to use these options.
+
+Otherwise, this must be a L<Data::Serializer|Data::Serializer> object or
+another object that implements I<serialize()> and I<deserialize()>.
+
+e.g.
+
+    # Serialize using raw Data::Dumper
+    my $cache = CHI->new(serializer => 'Data::Dumper');
+
+    # Serialize using Data::Dumper, compressed and (per Data::Serializer defaults) hex-encoded
+    my $cache = CHI->new(serializer => { serializer => 'Data::Dumper', compress => 1 });
+
+    # Serialize using custom object
+    my $cache = CHI->new(serializer => My::Custom::Serializer->new())
+
+The default is to use raw Storable.
 
 =back
 

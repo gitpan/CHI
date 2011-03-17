@@ -1,6 +1,6 @@
 package CHI::t::Driver::RawMemory;
 BEGIN {
-  $CHI::t::Driver::RawMemory::VERSION = '0.42';
+  $CHI::t::Driver::RawMemory::VERSION = '0.43';
 }
 use strict;
 use warnings;
@@ -31,6 +31,7 @@ sub test_serializers          { }
 
 # Would need tweaking to pass
 #
+sub test_compress_threshold            { }
 sub test_custom_discard_policy         { }
 sub test_lru_discard                   { }
 sub test_size_awareness_with_subcaches { }
