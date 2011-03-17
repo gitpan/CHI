@@ -15,11 +15,16 @@
    "name" : "CHI",
    "no_index" : {
       "directory" : [
-         "lib/CHI/t",
-         "lib/CHI/Test"
+         "lib/CHI/Serializer",
+         "lib/CHI/Test",
+         "lib/CHI/t"
       ],
       "file" : [
+         "lib/CHI/Constants.pm",
          "lib/CHI/Driver/Role/Universal.pm",
+         "lib/CHI/Test.pm",
+         "lib/CHI/Types.pm",
+         "lib/CHI/Types.pm",
          "lib/CHI/Util.pm"
       ]
    },
@@ -72,6 +77,6 @@
          "web" : "https://github.com/jonswar/perl-chi"
       }
    },
-   "version" : "0.43"
+   "version" : "0.44"
 }
 

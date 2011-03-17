@@ -21,10 +21,15 @@ meta-spec:
 name: CHI
 no_index:
   directory:
-    - lib/CHI/t
+    - lib/CHI/Serializer
     - lib/CHI/Test
+    - lib/CHI/t
   file:
+    - lib/CHI/Constants.pm
     - lib/CHI/Driver/Role/Universal.pm
+    - lib/CHI/Test.pm
+    - lib/CHI/Types.pm
+    - lib/CHI/Types.pm
     - lib/CHI/Util.pm
 requires:
   Carp::Assert: 0.20
@@ -45,4 +50,4 @@ requires:
 resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=CHI
   repository: git://github.com/jonswar/perl-chi.git
-version: 0.43
+version: 0.44

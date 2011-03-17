@@ -1,6 +1,6 @@
 package CHI::t::Null;
 BEGIN {
-  $CHI::t::Null::VERSION = '0.43';
+  $CHI::t::Null::VERSION = '0.44';
 }
 use strict;
 use warnings;

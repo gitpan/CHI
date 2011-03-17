@@ -44,7 +44,7 @@ my %WriteMakefileArgs = (
     'Time::Duration::Parse' => '0.03',
     'Try::Tiny' => '0.05'
   },
-  'VERSION' => '0.43',
+  'VERSION' => '0.44',
   'test' => {
     'TESTS' => 't/*.t'
   }

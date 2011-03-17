@@ -1,6 +1,6 @@
 package CHI::t::Driver;
 BEGIN {
-  $CHI::t::Driver::VERSION = '0.43';
+  $CHI::t::Driver::VERSION = '0.44';
 }
 use strict;
 use warnings;
@@ -564,7 +564,7 @@ sub test_serialize : Tests {
 {
     package DummySerializer;
 BEGIN {
-  $DummySerializer::VERSION = '0.43';
+  $DummySerializer::VERSION = '0.44';
 }
     sub serialize   { }
     sub deserialize { }

@@ -1,6 +1,6 @@
 package CHI::Test::Driver::NonMoose;
 BEGIN {
-  $CHI::Test::Driver::NonMoose::VERSION = '0.43';
+  $CHI::Test::Driver::NonMoose::VERSION = '0.44';
 }
 use Carp;
 use strict;
