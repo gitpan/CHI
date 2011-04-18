@@ -2,6 +2,11 @@ Revision history for CHI
 
 ** denotes an incompatible change
 
+0.45  Apr 18, 2011
+
+* Improvements
+  - Add expires_on_backend parameter
+
 0.44  Mar 17, 2011
 
 * Fixes

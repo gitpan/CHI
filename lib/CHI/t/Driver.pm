@@ -1,6 +1,6 @@
 package CHI::t::Driver;
 BEGIN {
-  $CHI::t::Driver::VERSION = '0.44';
+  $CHI::t::Driver::VERSION = '0.45';
 }
 use strict;
 use warnings;
@@ -18,8 +18,9 @@ use Test::Warn;
 use base qw(CHI::Test::Class);
 
 # Flags indicating what each test driver supports
-sub supports_clear          { 1 }
-sub supports_get_namespaces { 1 }
+sub supports_clear              { 1 }
+sub supports_expires_on_backend { 0 }
+sub supports_get_namespaces     { 1 }
 
 sub standard_keys_and_values : Test(startup) {
     my ($self) = @_;
@@ -564,7 +565,7 @@ sub test_serialize : Tests {
 {
     package DummySerializer;
 BEGIN {
-  $DummySerializer::VERSION = '0.44';
+  $DummySerializer::VERSION = '0.45';
 }
     sub serialize   { }
     sub deserialize { }
@@ -1698,6 +1699,45 @@ sub test_compress_threshold : Tests {
     ok( $cache2->get_object('key1')->size < 100 );
     is( $cache2->get('key0'), $s0 );
     is( $cache2->get('key1'), $s1 );
+}
+
+sub test_expires_on_backend : Tests {
+    my $self = shift;
+
+    return "skipping - no support for expires_on_backend"
+      unless $self->supports_expires_on_backend();
+    foreach my $expires_on_backend ( 0, 1 ) {
+        my $cache =
+          $self->new_cache( expires_on_backend => $expires_on_backend );
+        $cache->set( 'key0', 5, '2s' );
+        $cache->set( 'key1', 6, { expires_at => time + 2 } );
+        is( $cache->get('key0'), 5, 'hit key0 before expire' );
+        is( $cache->get('key1'), 6, 'hit key1 before expire' );
+        sleep(3);
+        ok( !defined( $cache->get('key0') ), 'miss key0 after expire' );
+        ok( !defined( $cache->get('key1') ), 'miss key1 after expire' );
+
+        if ($expires_on_backend) {
+            ok(
+                !defined( $cache->get_object('key0') ),
+                'cannot get_object(key0) after expire'
+            );
+            ok(
+                !defined( $cache->get_object('key1') ),
+                'cannot get_object(key1) after expire'
+            );
+        }
+        else {
+            ok(
+                $cache->get_object('key0')->is_expired(),
+                'can get_object(key0) after expire'
+            );
+            ok(
+                $cache->get_object('key1')->is_expired(),
+                'can get_object(key1) after expire'
+            );
+        }
+    }
 }
 
 1;

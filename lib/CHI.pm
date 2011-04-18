@@ -1,6 +1,6 @@
 package CHI;
 BEGIN {
-  $CHI::VERSION = '0.44';
+  $CHI::VERSION = '0.45';
 }
 use 5.006;
 use Carp;
@@ -93,7 +93,7 @@ CHI - Unified cache handling interface
 
 =head1 VERSION
 
-version 0.44
+version 0.45
 
 =head1 SYNOPSIS
 
@@ -219,6 +219,22 @@ The exact CHI::Driver subclass to drive the cache, for example
 =item expires_variance [FLOAT]
 
 Provide default values for the corresponding L</set> options.
+
+=item expires_on_backend [NUM]
+
+If set to 0 (the default), CHI alone is aware of the expiration time and does
+not pass it along to the backend driver. This allows you to use L</get_object>
+to retrieve expired items.
+
+If set to 1, pass expiration times to backend driver if the driver supports it
+-- for example, L<CHI::Driver::Memcached|Memcached> and
+L<CHI::Driver::CacheCache|CacheCache>. This may allow the driver to better
+manage its space and evict items. Note that only simple expiration time will be
+passed along, e.g. not L</expires_variance>.
+
+If set to a number greater than 1 (e.g. 1.25), the time til expiration will be
+multiplied by that number before being passed to the backend driver. This gives
+you a customizable window of opportunity to retrieve expired items.
 
 =item key_digester [STRING|HASHREF|OBJECT]
 

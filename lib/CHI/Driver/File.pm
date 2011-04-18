@@ -1,6 +1,6 @@
 package CHI::Driver::File;
 BEGIN {
-  $CHI::Driver::File::VERSION = '0.44';
+  $CHI::Driver::File::VERSION = '0.45';
 }
 use Carp;
 use Cwd qw(realpath cwd);
@@ -188,6 +188,7 @@ my %hex_strings = map { ( $_, sprintf( "%x", $_ ) ) } ( 0x0 .. 0xf );
 
 sub path_to_key {
     my ( $self, $key, $dir_ref ) = @_;
+    return undef if !defined($key);
 
     my @paths = ( $self->path_to_namespace );
 
@@ -247,7 +248,7 @@ directory structure
 
 =head1 VERSION
 
-version 0.44
+version 0.45
 
 =head1 SYNOPSIS
 

@@ -1,6 +1,6 @@
 package CHI::t::Driver::CacheCache;
 BEGIN {
-  $CHI::t::Driver::CacheCache::VERSION = '0.44';
+  $CHI::t::Driver::CacheCache::VERSION = '0.45';
 }
 use strict;
 use warnings;
@@ -9,6 +9,8 @@ use File::Temp qw(tempdir);
 use base qw(CHI::t::Driver);
 
 my $root_dir;
+
+sub supports_expires_on_backend { 1 }
 
 sub required_modules {
     return { 'Cache::Cache' => undef, 'Cache::FileCache' => undef };
