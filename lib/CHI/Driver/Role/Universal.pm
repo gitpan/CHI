@@ -1,6 +1,6 @@
 package CHI::Driver::Role::Universal;
 BEGIN {
-  $CHI::Driver::Role::Universal::VERSION = '0.45';
+  $CHI::Driver::Role::Universal::VERSION = '0.46';
 }
 use CHI::Constants qw(CHI_Meta_Namespace);
 use Moose::Role;

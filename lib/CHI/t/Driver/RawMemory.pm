@@ -1,7 +1,4 @@
 package CHI::t::Driver::RawMemory;
-BEGIN {
-  $CHI::t::Driver::RawMemory::VERSION = '0.45';
-}
 use strict;
 use warnings;
 use CHI::Test;

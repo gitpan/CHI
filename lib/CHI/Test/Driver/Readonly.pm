@@ -1,7 +1,4 @@
 package CHI::Test::Driver::Readonly;
-BEGIN {
-  $CHI::Test::Driver::Readonly::VERSION = '0.45';
-}
 use Carp;
 use Moose;
 use strict;

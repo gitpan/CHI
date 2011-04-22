@@ -1,7 +1,4 @@
 package CHI::t::Subclass;
-BEGIN {
-  $CHI::t::Subclass::VERSION = '0.45';
-}
 use strict;
 use warnings;
 use CHI::Test;
@@ -11,9 +8,6 @@ use base qw(CHI::Test::Class);
 #
 {
     package CHI::t::Subclass::Driver::HasUnsupported;
-BEGIN {
-  $CHI::t::Subclass::Driver::HasUnsupported::VERSION = '0.45';
-}
     use Moose;
     extends 'CHI::Driver::Memory';
     __PACKAGE__->declare_unsupported_methods(qw(get_namespaces));

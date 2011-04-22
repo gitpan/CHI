@@ -1,7 +1,4 @@
 package CHI::t::Driver::File::DepthZero;
-BEGIN {
-  $CHI::t::Driver::File::DepthZero::VERSION = '0.45';
-}
 use strict;
 use warnings;
 use CHI::Test;

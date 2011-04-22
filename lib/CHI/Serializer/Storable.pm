@@ -2,9 +2,6 @@
 # Recommend Data::Serializer for other serializers, rather than reinventing the wheel.
 #
 package CHI::Serializer::Storable;
-BEGIN {
-  $CHI::Serializer::Storable::VERSION = '0.45';
-}
 use Moose;
 use Storable;
 use strict;

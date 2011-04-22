@@ -1,7 +1,4 @@
 package CHI::t::SetError;
-BEGIN {
-  $CHI::t::SetError::VERSION = '0.45';
-}
 use strict;
 use warnings;
 use CHI::Test;
