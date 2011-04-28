@@ -73,6 +73,7 @@ lib/CHI/t/SetError.pm
 lib/CHI/t/Subcache.pm
 lib/CHI/t/Subclass.pm
 lib/CHI/t/Util.pm
+lib/CHIx/DecayedSet.pm
 t/00-load.t
 t/Bugs.t
 t/Constants.t

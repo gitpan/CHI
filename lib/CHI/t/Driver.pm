@@ -1663,15 +1663,28 @@ sub test_compute : Tests {
     my $cache = $self->{cache};
 
     # Test current arg order and pre-0.40 arg order
-    my $expire_time = time + 10;
-    my @orig = ( { expires_at => $expire_time }, sub { 'bar' } );
-    foreach my $args ( [@orig], [ reverse(@orig) ] ) {
+    foreach my $iter ( 0 .. 1 ) {
+        my $count       = 5;
+        my $expire_time = time + 10;
+        my @args1       = ( { expires_at => $expire_time }, sub { $count++ } );
+        my @args2       = (
+            {
+                expire_if => sub { 1 }
+            },
+            sub { $count++ }
+        );
+        if ($iter) {
+            @args1 = reverse(@args1);
+            @args2 = reverse(@args2);
+        }
         $cache->clear;
         is( $cache->get('foo'), undef, "miss" );
-        $cache->compute( 'foo', @$args );
-        is( $cache->get('foo'), 'bar', "hit" );
+        is( $cache->compute( 'foo', @args1 ), 5, "compute - 5" );
+        is( $cache->get('foo'), 5, "hit - 5" );
         is( $cache->get_object('foo')->expires_at, $expire_time,
             "expire time" );
+        is( $cache->compute( 'foo', @args2 ), 6, "compute - 6" );
+        is( $cache->get('foo'), 6, "hit - 6" );
     }
 }
 
@@ -1732,6 +1745,66 @@ sub test_expires_on_backend : Tests {
             );
         }
     }
+}
+
+sub test_append : Tests {
+    my $self  = shift;
+    my $cache = $self->{cache};
+    my ( $key, $value ) =
+      ( $self->{keys}->{arrayref}, $self->{values}->{medium} );
+
+    # Appending to non-existent key has no effect
+    #
+    $cache->append( $key, $value );
+    ok( !$cache->get($key) );
+
+    ok( $cache->set( $key, $value ) );
+    $cache->append( $key, $value );
+    is( $cache->get($key), $value . $value );
+    $cache->append( $key, $value );
+    is( $cache->get($key), $value . $value . $value );
+}
+
+sub test_add : Tests {
+    my $self  = shift;
+    my $cache = $self->{cache};
+    my ( $key, $value ) =
+      ( $self->{keys}->{arrayref}, $self->{values}->{medium} );
+
+    my $t = time();
+
+    $cache->add( $key, $value, { expires_at => $t + 100 } );
+    is( $cache->get($key),                    $value,   "get" );
+    is( $cache->get_object($key)->expires_at, $t + 100, "expires_at" );
+
+    $cache->add( $key, $value . $value, { expires_at => $t + 200 } );
+    is( $cache->get($key), $value, "get (after add)" );
+    is( $cache->get_object($key)->expires_at,
+        $t + 100, "expires_at (after add)" );
+
+    $cache->remove($key);
+    $cache->add( $key, $value . $value, { expires_at => $t + 200 } );
+    is( $cache->get($key), $value . $value, "get (after expire and add)" );
+    is( $cache->get_object($key)->expires_at,
+        $t + 200, "expires_at (after expire and add)" );
+}
+
+sub test_replace : Tests {
+    my $self  = shift;
+    my $cache = $self->{cache};
+    my ( $key, $value ) =
+      ( $self->{keys}->{arrayref}, $self->{values}->{medium} );
+
+    my $t = time();
+
+    $cache->replace( $key, $value, { expires_at => $t + 100 } );
+    ok( !$cache->get_object($key), "get" );
+
+    $cache->set( $key, $value . $value, { expires_at => $t + 200 } );
+    $cache->replace( $key, $value, { expires_at => $t + 100 } );
+    is( $cache->get($key), $value, "get (after replace)" );
+    is( $cache->get_object($key)->expires_at,
+        $t + 100, "expires_at (after replace)" );
 }
 
 1;

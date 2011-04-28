@@ -1,6 +1,6 @@
 package CHI;
 BEGIN {
-  $CHI::VERSION = '0.46';
+  $CHI::VERSION = '0.47';
 }
 use 5.006;
 use Carp;
@@ -93,7 +93,7 @@ CHI - Unified cache handling interface
 
 =head1 VERSION
 
-version 0.46
+version 0.47
 
 =head1 SYNOPSIS
 
@@ -341,7 +341,8 @@ message, the key, and the original raw error message
 =item serializer [STRING|HASHREF|OBJECT]
 
 An object to use for serializing data before storing it in the cache, and
-deserializing data after retrieving it from the cache.
+deserializing data after retrieving it from the cache. Only references will be
+serialized; plain scalars will be placed in the cache as-is.
 
 If this is a string, a L<Data::Serializer|Data::Serializer> object will be
 created, with the string passed as the 'serializer' option and raw=1. Common
@@ -471,15 +472,22 @@ as soon as it is determined to be expired. But it's something to be aware of.
 
 =back
 
-=item compute( $key, $set_options, $code )
+=item compute( $key, $options, $code )
 
 Combines the C<get> and C<set> operations in a single call. Attempts to get
 I<$key>; if successful, returns the value. Otherwise, calls I<$code> and uses
 the return value as the new value for I<$key>, which is then returned.
-I<$set_options> is a scalar or hash reference, used as the third argument to
-set.
+
+I<$options> is a scalar or hash reference. If a scalar, it is treated as the
+C<expires_in> duration and passed as the third argument to C<set>. If it is a
+hash reference, it may contain name/value pairs for both C<get> and C<set>.
+e.g.
 
     $cache->compute($key, '5min', sub {
+        # compute and return value for $key here
+    });
+
+    $cache->compute($key, { expires_in => '5min', expire_if => sub { ... } }, sub {
         # compute and return value for $key here
     });
 
@@ -535,6 +543,50 @@ the key does not exist or it has no expiration time.
 Returns a L<CHI::CacheObject|CHI::CacheObject> object containing data about the
 entry associated with I<$key>, or undef if no such key exists. The object will
 be returned even if the entry has expired, as long as it has not been removed.
+
+=back
+
+=head2 Atomic operations (ALPHA)
+
+These methods combine both reading and writing of a cache entry in a single
+operation. The names and behaviors were adapted from
+L<memcached|http://memcached.org/>.
+
+Some drivers (e.g.
+L<CHI::Driver::Memcached::libmemcached|Memcached::libmemcached>,
+L<CHI::Driver::DBI|DBI>) may implement these as truly atomic operations, and
+will be documented thusly.  The default implementations are not atomic: the get
+and set occur discretely and another process could potentially modify the cache
+in between them.
+
+These operations are labelled ALPHA because we haven't yet figured out how they
+integrate with other CHI features, in particular L</SUBCACHES>. APIs and
+behavior may change.
+
+=over
+
+=item add( $key, $data, [$expires_in | "now" | "never" | options] )
+
+Do a L<set>, but only if I<$key> is not L<valid|is_valid> in the cache.
+
+=item replace( $key, $data, [$expires_in | "now" | "never" | options] )
+
+Do a L<set>, but only if I<$key> is L<valid|is_valid> in the cache.
+
+=item append( $key, $new_data)
+
+Append I<$new_data> to whatever value is currently associated with I<$key>.
+Does not modify expiration or other metadata; if I<$key> exists but is expired,
+it will remain expired. Has no effect if I<$key> does not exist in the cache.
+
+This is intended for simple string values only. For efficiency's sake, CHI
+won't attempt to check for, or handle, the case where data is
+L<serialized|serializer> or L<compressed|compress_threshold>; the new data will
+simply be appended, and an error will most probably occur when you try to
+retrieve the value.
+
+If you use a driver with the non-atomic (default) implementation, some appends
+may be lost due to race conditions.
 
 =back
 

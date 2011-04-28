@@ -1,6 +1,6 @@
 package CHI::Driver;
 BEGIN {
-  $CHI::Driver::VERSION = '0.46';
+  $CHI::Driver::VERSION = '0.47';
 }
 use Carp;
 use CHI::CacheObject;
@@ -384,15 +384,22 @@ sub compute {
     my $key  = shift;
 
     # Allow these in either order for backward compatibility
-    my ( $code, $set_options ) =
+    my ( $code, $options ) =
       ( ref( $_[0] ) eq 'CODE' ) ? ( $_[0], $_[1] ) : ( $_[1], $_[0] );
 
     croak "must specify key and code" unless defined($key) && defined($code);
 
-    my $value = $self->get($key);
+    my %get_options =
+      ( ref($options) eq 'HASH' )
+      ? (
+        map { exists( $options->{$_} ) ? ( $_, delete( $options->{$_} ) ) : () }
+          qw(expire_if busy_lock)
+      )
+      : ();
+    my $value = $self->get( $key, %get_options );
     if ( !defined $value ) {
         $value = $code->();
-        $self->set( $key, $value, $set_options );
+        $self->set( $key, $value, $options );
     }
     return $value;
 }
@@ -425,6 +432,35 @@ sub is_empty {
     my ($self) = @_;
 
     return !$self->get_keys();
+}
+
+#
+# (SEMI-) ATOMIC OPERATIONS
+#
+
+sub add {
+    my $self = shift;
+    my $key  = shift;
+
+    if ( !$self->is_valid($key) ) {
+        $self->set( $key, @_ );
+    }
+}
+
+sub append {
+    my ( $self, $key, $new ) = @_;
+
+    my $current = $self->fetch($key) or return undef;
+    $self->store( $key, $current . $new );
+}
+
+sub replace {
+    my $self = shift;
+    my $key  = shift;
+
+    if ( $self->is_valid($key) ) {
+        $self->set( $key, @_ );
+    }
 }
 
 #
@@ -650,7 +686,7 @@ CHI::Driver - Base class for all CHI drivers
 
 =head1 VERSION
 
-version 0.46
+version 0.47
 
 =head1 DESCRIPTION
 

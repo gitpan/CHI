@@ -1,6 +1,6 @@
 package CHI::Stats;
 BEGIN {
-  $CHI::Stats::VERSION = '0.46';
+  $CHI::Stats::VERSION = '0.47';
 }
 use Log::Any qw($log);
 use Moose;
@@ -137,7 +137,7 @@ CHI::Stats - Record and report per-namespace cache statistics
 
 =head1 VERSION
 
-version 0.46
+version 0.47
 
 =head1 SYNOPSIS
 

@@ -1,6 +1,6 @@
 package CHI::Driver::RawMemory;
 BEGIN {
-  $CHI::Driver::RawMemory::VERSION = '0.46';
+  $CHI::Driver::RawMemory::VERSION = '0.47';
 }
 use Moose;
 use strict;
@@ -9,6 +9,12 @@ use warnings;
 extends 'CHI::Driver::Memory';
 
 has 'serializer' => ( is => 'ro', default => undef, init_arg => undef );
+
+sub append {
+    my ( $self, $key, $new ) = @_;
+
+    return "append not yet supported in this driver";
+}
 
 __PACKAGE__->meta->make_immutable();
 
@@ -24,7 +30,7 @@ CHI::Driver::RawMemory - In-process memory cache that stores direct references
 
 =head1 VERSION
 
-version 0.46
+version 0.47
 
 =head1 SYNOPSIS
 

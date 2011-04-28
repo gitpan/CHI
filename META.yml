@@ -50,4 +50,4 @@ requires:
 resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=CHI
   repository: git://github.com/jonswar/perl-chi.git
-version: 0.46
+version: 0.47
