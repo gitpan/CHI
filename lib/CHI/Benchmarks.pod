@@ -9,7 +9,7 @@ CHI::Benchmarks - Benchmarks of CHI and non-CHI drivers
 
 =head1 VERSION
 
-version 0.47
+version 0.48
 
 =head1 DESCRIPTION
 
