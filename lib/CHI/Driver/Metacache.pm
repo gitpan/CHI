@@ -1,6 +1,6 @@
 package CHI::Driver::Metacache;
 BEGIN {
-  $CHI::Driver::Metacache::VERSION = '0.48';
+  $CHI::Driver::Metacache::VERSION = '0.49';
 }
 use CHI::Constants qw(CHI_Meta_Namespace);
 use Moose;
@@ -66,7 +66,7 @@ CHI::Driver::Metacache - Metacache for internal CHI use
 
 =head1 VERSION
 
-version 0.48
+version 0.49
 
 =head1 SYNOPSIS
 

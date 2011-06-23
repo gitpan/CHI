@@ -1,4 +1,7 @@
 package CHI::t::Bugs;
+BEGIN {
+  $CHI::t::Bugs::VERSION = '0.49';
+}
 use strict;
 use warnings;
 use CHI::Test;

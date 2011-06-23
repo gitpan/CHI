@@ -1,6 +1,6 @@
 package CHI::Driver::Memory;
 BEGIN {
-  $CHI::Driver::Memory::VERSION = '0.48';
+  $CHI::Driver::Memory::VERSION = '0.49';
 }
 use Carp qw(cluck croak);
 use CHI::Constants qw(CHI_Meta_Namespace);
@@ -105,7 +105,7 @@ CHI::Driver::Memory - In-process memory based cache
 
 =head1 VERSION
 
-version 0.48
+version 0.49
 
 =head1 SYNOPSIS
 

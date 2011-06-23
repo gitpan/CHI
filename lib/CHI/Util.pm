@@ -1,4 +1,7 @@
 package CHI::Util;
+BEGIN {
+  $CHI::Util::VERSION = '0.49';
+}
 use Carp qw( croak longmess );
 use Class::MOP;
 use Data::Dumper;

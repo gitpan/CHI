@@ -1,6 +1,6 @@
 package CHI::Driver::FastMmap;
 BEGIN {
-  $CHI::Driver::FastMmap::VERSION = '0.48';
+  $CHI::Driver::FastMmap::VERSION = '0.49';
 }
 use Carp;
 use Cache::FastMmap;
@@ -89,7 +89,7 @@ CHI::Driver::FastMmap - Shared memory interprocess cache via mmap'ed files
 
 =head1 VERSION
 
-version 0.48
+version 0.49
 
 =head1 SYNOPSIS
 

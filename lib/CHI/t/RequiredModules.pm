@@ -1,4 +1,7 @@
 package CHI::t::RequiredModules;
+BEGIN {
+  $CHI::t::RequiredModules::VERSION = '0.49';
+}
 use strict;
 use warnings;
 use CHI::Test;

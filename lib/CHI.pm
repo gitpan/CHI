@@ -1,6 +1,6 @@
 package CHI;
 BEGIN {
-  $CHI::VERSION = '0.48';
+  $CHI::VERSION = '0.49';
 }
 use 5.006;
 use Carp;
@@ -93,7 +93,7 @@ CHI - Unified cache handling interface
 
 =head1 VERSION
 
-version 0.48
+version 0.49
 
 =head1 SYNOPSIS
 

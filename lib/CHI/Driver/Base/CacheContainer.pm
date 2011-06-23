@@ -1,6 +1,6 @@
 package CHI::Driver::Base::CacheContainer;
 BEGIN {
-  $CHI::Driver::Base::CacheContainer::VERSION = '0.48';
+  $CHI::Driver::Base::CacheContainer::VERSION = '0.49';
 }
 use Moose;
 use Moose::Util::TypeConstraints;
@@ -62,7 +62,7 @@ CHI::Driver::Base::CacheContainer - Caches that delegate to a contained cache
 
 =head1 VERSION
 
-version 0.48
+version 0.49
 
 =head1 DESCRIPTION
 

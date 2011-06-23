@@ -1,4 +1,7 @@
 package CHIx::DecayedSet;
+BEGIN {
+  $CHIx::DecayedSet::VERSION = '0.49';
+}
 use Moose;
 
 has 'cache'       => ( isa => 'CHI::Types::Cache' );
