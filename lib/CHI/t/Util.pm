@@ -1,6 +1,6 @@
 package CHI::t::Util;
 BEGIN {
-  $CHI::t::Util::VERSION = '0.49';
+  $CHI::t::Util::VERSION = '0.50';
 }
 use strict;
 use warnings;

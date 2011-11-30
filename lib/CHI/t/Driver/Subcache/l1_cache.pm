@@ -1,6 +1,6 @@
 package CHI::t::Driver::Subcache::l1_cache;
 BEGIN {
-  $CHI::t::Driver::Subcache::l1_cache::VERSION = '0.49';
+  $CHI::t::Driver::Subcache::l1_cache::VERSION = '0.50';
 }
 use strict;
 use warnings;
@@ -57,5 +57,8 @@ sub test_stats : Tests {
 
 # not working yet
 sub test_append { }
+
+# won't work in presence of l1 cache
+sub test_max_key_length { }
 
 1;

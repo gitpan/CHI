@@ -1,6 +1,6 @@
 package CHI::Types;
 BEGIN {
-  $CHI::Types::VERSION = '0.49';
+  $CHI::Types::VERSION = '0.50';
 }
 use Carp;
 use CHI::Util qw(can_load parse_duration parse_memory_size);

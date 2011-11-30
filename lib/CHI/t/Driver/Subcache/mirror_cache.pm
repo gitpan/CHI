@@ -1,6 +1,6 @@
 package CHI::t::Driver::Subcache::mirror_cache;
 BEGIN {
-  $CHI::t::Driver::Subcache::mirror_cache::VERSION = '0.49';
+  $CHI::t::Driver::Subcache::mirror_cache::VERSION = '0.50';
 }
 use strict;
 use warnings;
@@ -26,5 +26,8 @@ sub new_cache_options {
         mirror_to_cache => { driver => 'File', depth => 3 },
     );
 }
+
+# This tries to create its own mirror cache
+sub test_max_key_length { }
 
 1;

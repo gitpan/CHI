@@ -2,7 +2,7 @@ NAME
     CHI - Unified cache handling interface
 
 VERSION
-    version 0.49
+    version 0.50
 
 SYNOPSIS
         use CHI;
@@ -124,9 +124,6 @@ RELATION TO OTHER MODULES
         such as expiration time is stored in packed binary format alongside
         the data.
 
-        As an example, using Rob Mueller's cacheperl benchmarks, CHI's file
-        driver runs 3 to 4 times faster than Cache::FileCache.
-
     Ease of subclassing
         New Cache::Cache subclasses can be tedious to create, due to a lack
         of code refactoring, the use of non-OO package subroutines, and the
@@ -204,21 +201,6 @@ SUPPORT AND DOCUMENTATION
 
         http://github.com/jonswar/perl-chi/tree/master
         git clone git://github.com/jonswar/perl-chi.git
-
-TODO
-    *   Perform cache benchmarks comparing both CHI and non-CHI cache
-        implementations
-
-    *   Release BerkeleyDB drivers as separate CPAN distributions
-
-    *   Add docs comparing various strategies for reducing miss stampedes
-        and cost of recomputes
-
-    *   Add expires_next syntax (e.g. expires_next => 'hour')
-
-    *   Support automatic serialization and escaping of keys
-
-    *   Create XS versions of main functions in Driver.pm (e.g. get, set)
 
 ACKNOWLEDGMENTS
     Thanks to Dewitt Clinton for the original Cache::Cache, to Rob Mueller

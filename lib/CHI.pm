@@ -1,6 +1,6 @@
 package CHI;
 BEGIN {
-  $CHI::VERSION = '0.49';
+  $CHI::VERSION = '0.50';
 }
 use 5.006;
 use Carp;
@@ -93,7 +93,7 @@ CHI - Unified cache handling interface
 
 =head1 VERSION
 
-version 0.49
+version 0.50
 
 =head1 SYNOPSIS
 
@@ -402,11 +402,17 @@ computed:
 
 =item busy_lock [DURATION]
 
-If the value has expired, set its expiration time to the current time plus the
-specified L<duration|/DURATION EXPRESSIONS> before returning undef.  This is
-used to prevent multiple processes from recomputing the same expensive value
-simultaneously. The problem with this technique is that it doubles the number
-of writes performed - see L</expires_variance> for another technique.
+If the value has expired, the get will still return undef, but the expiration
+time of the cache entry will be set to the current time plus the specified
+L<duration|/DURATION EXPRESSIONS>.  This is used to prevent multiple processes
+from recomputing the same expensive value simultaneously. The problem with this
+technique is that it doubles the number of writes performed - see
+L</expires_variance> for another technique.
+
+=item obj_ref [SCALARREF]
+
+If the item exists in cache, place the <CHI::CacheObject|CHI::CacheObject>
+object in the provided SCALARREF.
 
 =back
 
@@ -425,7 +431,8 @@ these options can be provided with defaults in the cache constructor.
 
 =item expires_in [DURATION]
 
-Amount of time (in seconds) until this data expires.
+Amount of time from now until this data expires. I<DURATION> may be an integer
+number of seconds or a L<duration expression|/DURATION EXPRESSIONS>.
 
 =item expires_at [INT]
 
@@ -1130,9 +1137,6 @@ the built-in driver classes. Method calls are kept to a minimum, data is only
 serialized when necessary, and metadata such as expiration time is stored in
 packed binary format alongside the data.
 
-As an example, using Rob Mueller's cacheperl benchmarks, CHI's file driver runs
-3 to 4 times faster than Cache::FileCache.
-
 =item Ease of subclassing
 
 New Cache::Cache subclasses can be tedious to create, due to a lack of code
@@ -1218,37 +1222,6 @@ The latest source code can be browsed and fetched at:
 
     http://github.com/jonswar/perl-chi/tree/master
     git clone git://github.com/jonswar/perl-chi.git
-
-=head1 TODO
-
-=over
-
-=item *
-
-Perform cache benchmarks comparing both CHI and non-CHI cache implementations
-
-=item *
-
-Release BerkeleyDB drivers as separate CPAN distributions
-
-=item *
-
-Add docs comparing various strategies for reducing miss stampedes and cost of
-recomputes
-
-=item *
-
-Add expires_next syntax (e.g. expires_next => 'hour')
-
-=item *
-
-Support automatic serialization and escaping of keys
-
-=item *
-
-Create XS versions of main functions in Driver.pm (e.g. get, set)
-
-=back
 
 =head1 ACKNOWLEDGMENTS
 

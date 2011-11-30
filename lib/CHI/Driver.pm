@@ -1,6 +1,6 @@
 package CHI::Driver;
 BEGIN {
-  $CHI::Driver::VERSION = '0.49';
+  $CHI::Driver::VERSION = '0.50';
 }
 use Carp;
 use CHI::CacheObject;
@@ -697,7 +697,7 @@ CHI::Driver - Base class for all CHI drivers
 
 =head1 VERSION
 
-version 0.49
+version 0.50
 
 =head1 DESCRIPTION
 

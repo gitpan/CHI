@@ -1,6 +1,6 @@
 package CHI::t::Driver::FastMmap;
 BEGIN {
-  $CHI::t::Driver::FastMmap::VERSION = '0.49';
+  $CHI::t::Driver::FastMmap::VERSION = '0.50';
 }
 use strict;
 use warnings;

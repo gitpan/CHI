@@ -1,6 +1,6 @@
 package CHI::t::Driver;
 BEGIN {
-  $CHI::t::Driver::VERSION = '0.49';
+  $CHI::t::Driver::VERSION = '0.50';
 }
 use strict;
 use warnings;
@@ -303,6 +303,9 @@ sub test_deep_copy : Tests {
 sub test_expires_immediately : Tests {
     my $self = shift;
 
+    return 'author testing only - timing is unreliable'
+      unless ( $ENV{AUTHOR_TESTING} );
+
     # expires_in default should be ignored
     my $cache = $self->new_cache( expires_in => '1 hour' );
 
@@ -314,7 +317,7 @@ sub test_expires_immediately : Tests {
         is( $cache->set( $key, $value, $set_option ), $value, "set ($desc)" );
         is_between(
             $cache->get_expires_at($key),
-            time() - 2,
+            time() - 4,
             time(), "expires_at ($desc)"
         );
         ok( $cache->exists_and_is_expired($key), "is_expired ($desc)" );
@@ -333,6 +336,9 @@ sub test_expires_immediately : Tests {
 sub test_expires_shortly : Tests {
     my $self = shift;
 
+    return 'author testing only - timing is unreliable'
+      unless ( $ENV{AUTHOR_TESTING} );
+
     # expires_in default should be ignored
     my $cache = $self->new_cache( expires_in => '1 hour' );
 
@@ -347,27 +353,30 @@ sub test_expires_shortly : Tests {
         is_between(
             $cache->get_expires_at($key),
             $start_time + 1,
-            $start_time + 5,
+            $start_time + 8,
             "expires_at ($desc)"
         );
         ok( !$cache->exists_and_is_expired($key), "not expired ($desc)" );
         ok( $cache->is_valid($key),               "valid ($desc)" );
 
         # Only bother sleeping and expiring for one of the variants
-        if ( $set_option eq "2 seconds" ) {
+        if ( $set_option eq "3 seconds" ) {
             sleep(3);
             ok( !defined $cache->get($key), "miss after 2 seconds ($desc)" );
             ok( $cache->exists_and_is_expired($key), "is_expired ($desc)" );
             ok( !$cache->is_valid($key),             "invalid ($desc)" );
         }
     };
-    $test_expires_shortly->(2);
-    $test_expires_shortly->("2 seconds");
-    $test_expires_shortly->( { expires_at => time + 2 } );
+    $test_expires_shortly->(3);
+    $test_expires_shortly->("3 seconds");
+    $test_expires_shortly->( { expires_at => time + 3 } );
 }
 
 sub test_expires_later : Tests {
     my $self = shift;
+
+    return 'author testing only - timing is unreliable'
+      unless ( $ENV{AUTHOR_TESTING} );
 
     # expires_in default should be ignored
     my $cache = $self->new_cache( expires_in => '1s' );
@@ -382,8 +391,8 @@ sub test_expires_later : Tests {
         my $start_time = time();
         is_between(
             $cache->get_expires_at($key),
-            $start_time + 3590,
-            $start_time + 3610,
+            $start_time + 3580,
+            $start_time + 3620,
             "expires_at ($desc)"
         );
         ok( !$cache->exists_and_is_expired($key), "not expired ($desc)" );
@@ -577,7 +586,7 @@ sub test_serialize : Tests {
 {
     package DummySerializer;
 BEGIN {
-  $DummySerializer::VERSION = '0.49';
+  $DummySerializer::VERSION = '0.50';
 }
     sub serialize   { }
     sub deserialize { }
@@ -1825,6 +1834,28 @@ sub test_replace : Tests {
     is( $cache->get($key), $value, "get (after replace)" );
     is( $cache->get_object($key)->expires_at,
         $t + 100, "expires_at (after replace)" );
+}
+
+sub test_max_key_length : Tests {
+    my $self = shift;
+
+    # Test max_key_length and also that key does not get transformed twice in mirror_cache
+    #
+    my $mirror_store = {};
+    my $cache        = $self->new_cleared_cache(
+        max_key_length => 10,
+        mirror_cache   => { driver => 'Memory', datastore => $mirror_store }
+    );
+
+    foreach my $keyname ( 'medium', 'large' ) {
+        my ( $key, $value ) =
+          ( $self->{keys}->{$keyname}, $self->{values}->{$keyname} );
+        $cache->set( $key, $value );
+        is( $cache->get($key),               $value, $keyname );
+        is( $cache->mirror_cache->get($key), $value, $keyname );
+    }
+    cmp_set( [ $cache->get_keys() ],
+        [ 'medium', '66b08343f81782986329795e0a422a05' ], 'get_keys' );
 }
 
 1;
