@@ -37,6 +37,7 @@ lib/CHI/Test/Util.pm
 lib/CHI/Types.pm
 lib/CHI/Util.pm
 lib/CHI/t/Bugs.pm
+lib/CHI/t/Config.pm
 lib/CHI/t/Constants.pm
 lib/CHI/t/Driver.pm
 lib/CHI/t/Driver/CacheCache.pm
@@ -60,6 +61,7 @@ lib/CHI/t/Subclass.pm
 lib/CHI/t/Util.pm
 t/00-load.t
 t/Bugs.t
+t/Config.t
 t/Constants.t
 t/Driver-Memory.t
 t/Driver-RawMemory.t

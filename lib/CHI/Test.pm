@@ -2,7 +2,7 @@
 #
 package CHI::Test;
 BEGIN {
-  $CHI::Test::VERSION = '0.50';
+  $CHI::Test::VERSION = '0.51';
 }
 use Log::Any::Test;    # as early as possible
 use List::MoreUtils qw(uniq);

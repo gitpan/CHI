@@ -1,6 +1,6 @@
 package CHI::Driver;
 BEGIN {
-  $CHI::Driver::VERSION = '0.50';
+  $CHI::Driver::VERSION = '0.51';
 }
 use Carp;
 use CHI::CacheObject;
@@ -50,6 +50,7 @@ has 'on_get_error'       => ( is => 'rw', isa => 'CHI::Types::OnError', default 
 has 'on_set_error'       => ( is => 'rw', isa => 'CHI::Types::OnError', default => 'log' );
 has 'serializer'         => ( is => 'ro', isa => 'CHI::Types::Serializer', coerce => 1, default => sub { $default_serializer } );
 has 'short_driver_name'  => ( is => 'ro', lazy_build => 1 );
+has 'storage'            => ( is => 'ro' );
 
 # These methods must be implemented by subclass
 foreach my $method (qw(fetch store remove get_keys get_namespaces)) {
@@ -697,7 +698,7 @@ CHI::Driver - Base class for all CHI drivers
 
 =head1 VERSION
 
-version 0.50
+version 0.51
 
 =head1 DESCRIPTION
 

@@ -1,6 +1,6 @@
 package CHI::t::Driver;
 BEGIN {
-  $CHI::t::Driver::VERSION = '0.50';
+  $CHI::t::Driver::VERSION = '0.51';
 }
 use strict;
 use warnings;
@@ -586,7 +586,7 @@ sub test_serialize : Tests {
 {
     package DummySerializer;
 BEGIN {
-  $DummySerializer::VERSION = '0.50';
+  $DummySerializer::VERSION = '0.51';
 }
     sub serialize   { }
     sub deserialize { }
@@ -1853,9 +1853,15 @@ sub test_max_key_length : Tests {
         $cache->set( $key, $value );
         is( $cache->get($key),               $value, $keyname );
         is( $cache->mirror_cache->get($key), $value, $keyname );
+        if ( $keyname eq 'medium' ) {
+            is( $cache->get_object($key)->key(), $key, "medium key stored" );
+        }
+        else {
+            isnt( $cache->get_object($key)->key(), $key, "md5 key stored" );
+            is( length( $cache->get_object($key)->key() ),
+                32, "md5 key stored" );
+        }
     }
-    cmp_set( [ $cache->get_keys() ],
-        [ 'medium', '66b08343f81782986329795e0a422a05' ], 'get_keys' );
 }
 
 1;

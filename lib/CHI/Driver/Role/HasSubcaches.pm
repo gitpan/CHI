@@ -1,6 +1,6 @@
 package CHI::Driver::Role::HasSubcaches;
 BEGIN {
-  $CHI::Driver::Role::HasSubcaches::VERSION = '0.50';
+  $CHI::Driver::Role::HasSubcaches::VERSION = '0.51';
 }
 use Moose::Role;
 use Hash::MoreUtils qw(slice_exists);
@@ -38,7 +38,7 @@ my @subcache_inherited_param_keys = (
     qw(expires_at expires_in expires_variance namespace on_get_error on_set_error serializer)
 );
 
-# List of parameters that cannot be overriden in a subcache
+# List of parameters that cannot be overridden in a subcache
 #
 my @subcache_nonoverride_param_keys =
   (qw(expires_at expires_in expires_variance serializer));

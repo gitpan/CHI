@@ -2,7 +2,7 @@ NAME
     CHI - Unified cache handling interface
 
 VERSION
-    version 0.50
+    version 0.51
 
 SYNOPSIS
         use CHI;
@@ -79,7 +79,7 @@ AVAILABILITY OF DRIVERS
     *   CHI::Driver::Memory - In-process memory based cache
 
     *   CHI::Driver::RawMemory - In-process memory based cache that stores
-        references directly instead of deep-copying
+        references directly instead of serializing/deep-copying
 
     *   CHI::Driver::File - File-based cache using one file per entry in a
         multi-level directory structure
@@ -163,7 +163,8 @@ RELATION TO OTHER MODULES
 
     Serialization
         CHI handles its own serialization, passing a flat binary string to
-        the underlying cache backend.
+        the underlying cache backend. The notable exception is
+        CHI::Driver::RawMemory which does no serialization.
 
     Expiration
         CHI packs expiration times (as well as other metadata) inside the

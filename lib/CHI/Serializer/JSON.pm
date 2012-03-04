@@ -3,7 +3,7 @@
 #
 package CHI::Serializer::JSON;
 BEGIN {
-  $CHI::Serializer::JSON::VERSION = '0.50';
+  $CHI::Serializer::JSON::VERSION = '0.51';
 }
 use Moose;
 use JSON;

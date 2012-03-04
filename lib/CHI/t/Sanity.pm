@@ -1,6 +1,6 @@
 package CHI::t::Sanity;
 BEGIN {
-  $CHI::t::Sanity::VERSION = '0.50';
+  $CHI::t::Sanity::VERSION = '0.51';
 }
 use strict;
 use warnings;
