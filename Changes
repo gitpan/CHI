@@ -2,6 +2,14 @@ Revision history for CHI
 
 ** denotes an incompatible change
 
+0.52  Mar 7, 2012
+
+* Improvements
+  - Subclasses inherit configuration from their parents unless they also call config()
+
+* Fixes
+  - Fix Config test to not require memcached
+
 0.51  Mar 4, 2012
 
 * Improvements

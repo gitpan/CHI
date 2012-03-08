@@ -1,6 +1,6 @@
 package CHI::Driver::RawMemory;
 BEGIN {
-  $CHI::Driver::RawMemory::VERSION = '0.51';
+  $CHI::Driver::RawMemory::VERSION = '0.52';
 }
 use Moose;
 use strict;
@@ -30,7 +30,7 @@ CHI::Driver::RawMemory - In-process memory cache that stores direct references
 
 =head1 VERSION
 
-version 0.51
+version 0.52
 
 =head1 SYNOPSIS
 

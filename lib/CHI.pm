@@ -1,15 +1,15 @@
 package CHI;
 BEGIN {
-  $CHI::VERSION = '0.51';
+  $CHI::VERSION = '0.52';
 }
 use 5.006;
 use Carp;
 use CHI::Stats;
+use Moose;
 use strict;
 use warnings;
 
-my ( %final_class_seen, %config, %memoized_cache_objects, %stats );
-
+my ( %final_class_seen, %memoized_cache_objects, %stats );
 my %valid_config_keys =
   map { ( $_, 1 ) } qw(defaults memoize_cache_objects namespace storage);
 
@@ -19,21 +19,20 @@ sub logger {
 }
 
 sub config {
-    my ( $class, $config ) = @_;
-
-    # Each CHI root class gets its own config hash
-    #
-    if ( defined($config) ) {
-        if ( my @bad_keys = grep { !$valid_config_keys{$_} } keys(%$config) ) {
-            croak "unknown keys in config hash: " . join( ", ", @bad_keys );
-        }
-        $config{$class} = $config;
-    }
-    else {
-        $config{$class} ||= {};
-    }
-    return $config{$class};
+    my $class = shift;
+    $class->_set_config(@_) if @_;
+    return $class->_get_config();
 }
+
+sub _set_config {
+    my ( $class, $config ) = @_;
+    if ( my @bad_keys = grep { !$valid_config_keys{$_} } keys(%$config) ) {
+        croak "unknown keys in config hash: " . join( ", ", @bad_keys );
+    }
+    $class->meta->add_method( '_get_config' => sub { $config } );
+}
+
+CHI->config( {} );
 
 sub memoized_cache_objects {
     my ($class) = @_;
@@ -173,7 +172,7 @@ CHI - Unified cache handling interface
 
 =head1 VERSION
 
-version 0.51
+version 0.52
 
 =head1 SYNOPSIS
 
@@ -266,9 +265,18 @@ Optional logging and statistics collection of cache activity
 
 =head1 CONSTRUCTOR
 
-To create a new cache handle, call CHI-E<gt>new. It takes the following common
-options. All are optional, except that either I<driver> or I<driver_class> must
-be passed.
+To create a new cache object, call C<<CHI-E<gt>new>. It takes the common
+options listed below. All are optional, except that either I<driver> or
+I<driver_class> must be passed.
+
+Some drivers will take additional constructor options. For example, the File
+driver takes C<root_dir> and C<depth> options.
+
+You can configure default options for each new cache object created - see
+L</SUBCLASSING AND CONFIGURING CHI>.
+
+Note that C<CHI-E<gt>new> returns an instance of a subclass of
+L<CHI::Driver|CHI::Driver>, not C<CHI>.
 
 =over
 
@@ -447,9 +455,6 @@ e.g.
 The default is to use raw Storable.
 
 =back
-
-Some drivers will take additional constructor options. For example, the File
-driver takes C<root_dir> and C<depth> options.
 
 =head1 INSTANCE METHODS
 
@@ -894,7 +899,7 @@ places an in-process Memory cache in front of a Memcached cache:
     my $cache = CHI->new(
         driver   => 'Memcached',
         servers  => [ "10.0.0.15:11211", "10.0.0.15:11212" ],
-        l1_cache => { driver => 'Memory' }
+        l1_cache => { driver => 'Memory', global => 1, max_size => 1024*1024 }
     );
 
 On a C<get>, the L1 cache is checked first - if a valid value exists, it is
@@ -1010,7 +1015,7 @@ have its own subcaches, and so on. e.g.
         l1_cache => {
             driver     => 'File',
             root_dir   => '/path/to/root',
-            l1_cache   => { driver => 'RawMemory' }
+            l1_cache   => { driver => 'RawMemory', global => 1 }
         }
     );
 
@@ -1269,15 +1274,11 @@ Core defaults defined under 'defaults'
 
 =back
 
-=head2 Initialization and inheritance of config
+=head2 Inheritance of config
 
-Config starts out as an empty hash for each subclass. Config settings are not
-automatically inherited, but you can merge in the parent's config manually:
-
-    __PACKAGE__->config({
-        ...,
-        %{ __PACKAGE__->SUPER::config },
-    });
+A subclass will automatically inherit the configuration of its parent if it
+does not call C<config> itself (ala
+L<Class::Data::Inheritable|Class::Data::Inheritable>).
 
 =head2 Reading config from a file
 

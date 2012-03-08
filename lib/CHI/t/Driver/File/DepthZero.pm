@@ -1,6 +1,6 @@
 package CHI::t::Driver::File::DepthZero;
 BEGIN {
-  $CHI::t::Driver::File::DepthZero::VERSION = '0.51';
+  $CHI::t::Driver::File::DepthZero::VERSION = '0.52';
 }
 use strict;
 use warnings;

@@ -1,6 +1,6 @@
 package CHI::Util;
 BEGIN {
-  $CHI::Util::VERSION = '0.51';
+  $CHI::Util::VERSION = '0.52';
 }
 use Carp qw( croak longmess );
 use Class::MOP;
