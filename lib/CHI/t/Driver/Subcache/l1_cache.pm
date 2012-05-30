@@ -1,6 +1,6 @@
 package CHI::t::Driver::Subcache::l1_cache;
 BEGIN {
-  $CHI::t::Driver::Subcache::l1_cache::VERSION = '0.53';
+  $CHI::t::Driver::Subcache::l1_cache::VERSION = '0.54';
 }
 use strict;
 use warnings;
@@ -47,10 +47,10 @@ sub test_stats : Tests {
     $stats->flush();
 
     $log->contains_ok(
-        qr/CHI stats: namespace='Foo'; cache='File'; start=.*; end=.*; absent_misses=1; get_time_ms=\d+; set_key_size=6; set_time_ms=\d+; set_value_size=20; sets=1/
+        qr/CHI stats: {"absent_misses":1,"end_time":\d+,"get_time_ms":\d+,"label":"File","namespace":"Foo","root_class":"CHI","set_key_size":6,"set_time_ms":\d+,"set_value_size":20,"sets":1,"start_time":\d+}/
     );
     $log->contains_ok(
-        qr/CHI stats: namespace='Foo'; cache='File:l1_cache'; start=.*; end=.*; absent_misses=1; get_time_ms=\d+; hits=1/
+        qr/CHI stats: {"absent_misses":1,"end_time":\d+,"get_time_ms":\d+,"hits":1,"label":"File:l1_cache","namespace":"Foo","root_class":"CHI","set_key_size":6,"set_time_ms":\d+,"set_value_size":20,"sets":1,"start_time":\d+}/
     );
 
 }

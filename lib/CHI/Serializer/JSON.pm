@@ -3,28 +3,21 @@
 #
 package CHI::Serializer::JSON;
 BEGIN {
-  $CHI::Serializer::JSON::VERSION = '0.53';
+  $CHI::Serializer::JSON::VERSION = '0.54';
 }
+use CHI::Util qw(json_encode json_decode);
 use Moose;
-use JSON;
 use strict;
 use warnings;
 
 __PACKAGE__->meta->make_immutable;
 
-my $json_version = JSON->VERSION;
-my $json = $json_version < 2 ? JSON->new : JSON->new->utf8->canonical;
-
 sub serialize {
-    return $json_version < 2
-      ? $json->objToJson( $_[1] )
-      : $json->encode( $_[1] );
+    return json_encode( $_[1] );
 }
 
 sub deserialize {
-    return $json_version < 2
-      ? $json->jsonToObj( $_[1] )
-      : $json->decode( $_[1] );
+    return json_decode( $_[1] );
 }
 
 1;

@@ -1,6 +1,6 @@
 package CHI::Driver::Role::HasSubcaches;
 BEGIN {
-  $CHI::Driver::Role::HasSubcaches::VERSION = '0.53';
+  $CHI::Driver::Role::HasSubcaches::VERSION = '0.54';
 }
 use Moose::Role;
 use Hash::MoreUtils qw(slice_exists);

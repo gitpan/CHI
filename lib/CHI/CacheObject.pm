@@ -1,6 +1,6 @@
 package CHI::CacheObject;
 BEGIN {
-  $CHI::CacheObject::VERSION = '0.53';
+  $CHI::CacheObject::VERSION = '0.54';
 }
 use CHI::Constants qw(CHI_Max_Time);
 use Encode;
@@ -180,7 +180,7 @@ CHI::CacheObject - Contains information about cache entries
 
 =head1 VERSION
 
-version 0.53
+version 0.54
 
 =head1 SYNOPSIS
 
