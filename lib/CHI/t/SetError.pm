@@ -1,6 +1,6 @@
 package CHI::t::SetError;
 BEGIN {
-  $CHI::t::SetError::VERSION = '0.52';
+  $CHI::t::SetError::VERSION = '0.53';
 }
 use strict;
 use warnings;
@@ -12,7 +12,7 @@ sub readonly_cache {
     my ($on_set_error) = @_;
 
     return CHI->new(
-        driver_class => 'CHI::Test::Driver::Readonly',
+        driver       => '+CHI::Test::Driver::Readonly',
         on_set_error => $on_set_error,
         global       => 1
     );

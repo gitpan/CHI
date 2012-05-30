@@ -1,6 +1,6 @@
 package CHI::t::GetError;
 BEGIN {
-  $CHI::t::GetError::VERSION = '0.52';
+  $CHI::t::GetError::VERSION = '0.53';
 }
 use strict;
 use warnings;
@@ -12,6 +12,8 @@ sub writeonly_cache {
     my ($on_get_error) = @_;
 
     return CHI->new(
+
+        # leave as driver_class rather than driver to test back compat
         driver_class => 'CHI::Test::Driver::Writeonly',
         on_get_error => $on_get_error,
         global       => 1,

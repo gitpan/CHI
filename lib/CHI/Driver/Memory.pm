@@ -1,6 +1,6 @@
 package CHI::Driver::Memory;
 BEGIN {
-  $CHI::Driver::Memory::VERSION = '0.52';
+  $CHI::Driver::Memory::VERSION = '0.53';
 }
 use Carp qw(cluck croak);
 use CHI::Constants qw(CHI_Meta_Namespace);
@@ -105,7 +105,7 @@ CHI::Driver::Memory - In-process memory based cache
 
 =head1 VERSION
 
-version 0.52
+version 0.53
 
 =head1 SYNOPSIS
 
@@ -137,10 +137,10 @@ error eventually) will be thrown.
 
 =over
 
-=item datastore [HASH]
+=item datastore [HASHREF]
 
-A hash to be used for storage. Within the hash, each namespace is used as a key
-to a second-level hash.  This hash may be passed to multiple
+A reference to a hash to be used for storage. Within the hash, each namespace
+is used as a key to a second-level hash.  This hash may be passed to multiple
 CHI::Driver::Memory constructors.
 
 =item global [BOOL]

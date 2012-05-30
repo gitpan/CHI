@@ -1,11 +1,12 @@
 package CHI;
 BEGIN {
-  $CHI::VERSION = '0.52';
+  $CHI::VERSION = '0.53';
 }
 use 5.006;
 use Carp;
 use CHI::Stats;
 use Moose;
+use String::RewritePrefix;
 use strict;
 use warnings;
 
@@ -100,7 +101,9 @@ sub new {
     #
     my $driver_class;
     if ( my $driver = delete( $params{driver} ) ) {
-        $driver_class = "CHI::Driver::$driver";
+        ($driver_class) =
+          String::RewritePrefix->rewrite( { '' => 'CHI::Driver::', '+' => '' },
+            $driver );
     }
     else {
         $driver_class = delete( $params{driver_class} );
@@ -115,21 +118,26 @@ sub new {
     }
 
     # Select roles depending on presence of certain arguments. Everyone gets
-    # the Universal role.
+    # the Universal role. Accept both 'roles' and 'traits' for backwards
+    # compatibility. Add CHI::Driver::Role:: unless prefixed with '+'.
     #
-    my @roles = ('CHI::Driver::Role::Universal');
-    if ( exists( $params{roles} ) ) {
-        push( @roles, @{ delete( $params{roles} ) } );
+    my @roles = ('Universal');
+    foreach my $param_name (qw(roles traits)) {
+        if ( exists( $params{param_name} ) ) {
+            push( @roles, @{ delete( $params{param_name} ) } );
+        }
     }
     if ( exists( $params{max_size} ) || exists( $params{is_size_aware} ) ) {
-        push( @roles, 'CHI::Driver::Role::IsSizeAware' );
+        push( @roles, 'IsSizeAware' );
     }
     if ( exists( $params{l1_cache} ) || exists( $params{mirror_cache} ) ) {
-        push( @roles, 'CHI::Driver::Role::HasSubcaches' );
+        push( @roles, 'HasSubcaches' );
     }
     if ( $params{is_subcache} ) {
-        push( @roles, 'CHI::Driver::Role::IsSubcache' );
+        push( @roles, 'IsSubcache' );
     }
+    @roles = String::RewritePrefix->rewrite(
+        { '' => 'CHI::Driver::Role::', '+' => '' }, @roles );
 
     # Select a final class based on the driver class and roles, creating it
     # if necessary - adapted from MooseX::Traits
@@ -172,7 +180,7 @@ CHI - Unified cache handling interface
 
 =head1 VERSION
 
-version 0.52
+version 0.53
 
 =head1 SYNOPSIS
 
@@ -202,7 +210,7 @@ version 0.52
 
     # Create your own driver
     # 
-    my $cache = CHI->new( driver_class => 'My::Special::Driver', ... );
+    my $cache = CHI->new( driver => '+My::Special::Driver', ... );
 
     # Cache operations
     #
@@ -266,8 +274,7 @@ Optional logging and statistics collection of cache activity
 =head1 CONSTRUCTOR
 
 To create a new cache object, call C<<CHI-E<gt>new>. It takes the common
-options listed below. All are optional, except that either I<driver> or
-I<driver_class> must be passed.
+options listed below. I<driver> is required; all others are optional.
 
 Some drivers will take additional constructor options. For example, the File
 driver takes C<root_dir> and C<depth> options.
@@ -292,19 +299,13 @@ same name in L<Cache::Memcached>.
 
 =item driver [STRING]
 
-The name of a standard driver to drive the cache, for example "Memory" or
-"File".  CHI will prefix the string with "CHI::Driver::".
+Required. The name of a cache driver, for example "Memory" or "File".  CHI will
+prefix the string with "CHI::Driver::", unless it begins with '+'. e.g.
 
-=item driver_class [STRING]
+    driver => 'File';                   # uses CHI::Driver::File
+    driver => '+My::CHI::Driver::File'  # uses My::CHI::Driver::File
 
-The exact CHI::Driver subclass to drive the cache, for example
-"My::Memory::Driver".
-
-=item expires_in [DURATION]
-
-=item expires_at [INT]
-
-=item expires_variance [FLOAT]
+=item expires_in [DURATION], expires_at [INT], expires_variance [FLOAT]
 
 Provide default values for the corresponding L</set> options.
 
@@ -360,6 +361,8 @@ due to file system limits. For most drivers there is no maximum.
 =item mirror_cache [HASHREF]
 
 Add an mirror cache as a subcache. See L</SUBCACHES>.
+
+=for html <a name="namespace">
 
 =item namespace [STRING]
 
@@ -454,6 +457,14 @@ e.g.
 
 The default is to use raw Storable.
 
+=item traits [LISTREF]
+
+List of one or more roles to apply to the C<CHI::Driver> class that is
+constructed. The roles will automatically be prefixed with
+C<CHI::Driver::Role::> unless preceded with a '+'. e.g.
+
+    traits => ['StoresAccessedAt', '+My::CHI::Driver::Role']
+
 =back
 
 =head1 INSTANCE METHODS
@@ -512,6 +523,8 @@ or else a duration treated as an I<expires_in> value described below. If it is
 a hash reference, it may contain one or more of the following options. Most of
 these options can be provided with defaults in the cache constructor.
 
+=for html <a name="expires_in">
+
 =over
 
 =item expires_in [DURATION]
@@ -519,9 +532,13 @@ these options can be provided with defaults in the cache constructor.
 Amount of time from now until this data expires. I<DURATION> may be an integer
 number of seconds or a L<duration expression|/DURATION EXPRESSIONS>.
 
+=for html <a name="expires_at">
+
 =item expires_at [INT]
 
 The epoch time at which the data expires.
+
+=for html <a name="expires_variance">
 
 =item expires_variance [FLOAT]
 
@@ -564,23 +581,41 @@ as soon as it is determined to be expired. But it's something to be aware of.
 
 =back
 
+=for html <a name="compute">
+
 =item compute( $key, $options, $code )
 
 Combines the C<get> and C<set> operations in a single call. Attempts to get
 I<$key>; if successful, returns the value. Otherwise, calls I<$code> and uses
-the return value as the new value for I<$key>, which is then returned.
+the return value as the new value for I<$key>, which is then returned. Caller
+context (scalar or list) is respected.
 
-I<$options> is a scalar or hash reference. If a scalar, it is treated as the
-C<expires_in> duration and passed as the third argument to C<set>. If it is a
-hash reference, it may contain name/value pairs for both C<get> and C<set>.
-e.g.
+I<$options> can be undef, a scalar, or a hash reference. If it is undef, it has
+no effect. If it is a scalar, it is treated as the C<expires_in> duration and
+passed as the third argument to C<set>. If it is a hash reference, it may
+contain name/value pairs for both C<get> and C<set>.  e.g.
 
-    $cache->compute($key, '5min', sub {
+    # No expiration
+    my $value = $cache->compute($key, undef, sub {
         # compute and return value for $key here
     });
 
-    $cache->compute($key, { expires_in => '5min', expire_if => sub { ... } }, sub {
+    # Expire in 5 minutes
+    my $value = $cache->compute($key, '5min', sub {
         # compute and return value for $key here
+    });
+
+    # Expire in 5 minutes or when a particular condition occurs
+    my $value = $cache->compute($key,
+        { expires_in => '5min', expire_if => sub { ... } },
+        sub {
+           # compute and return value for $key here
+    });
+
+    # List context
+    my @value = $cache->compute($key, '5min', sub {
+        ...
+        return @some_list;
     });
 
 This method will eventually support the ability to recompute a value in the
@@ -768,9 +803,9 @@ Returns the full name of the driver class. e.g.
 
     CHI->new(driver=>'File')->driver_class
        => CHI::Driver::File
-    CHI->new(driver_class=>'CHI::Driver::File')->driver_class
+    CHI->new(driver=>'+CHI::Driver::File')->driver_class
        => CHI::Driver::File
-    CHI->new(driver_class=>'My::Driver::File')->driver_class
+    CHI->new(driver=>'+My::Driver::File')->driver_class
        => My::Driver::File
 
 You should use this rather than C<ref()>. Due to some subclassing tricks CHI
@@ -952,7 +987,7 @@ contain a hash of options to create the subcache with.
 The cache containing the subcache is called the I<parent cache>.
 
 The following options are automatically inherited by the subcache from the
-parent cache, and may not be overriden:
+parent cache, and may not be overridden:
 
     expires_at
     expires_in
@@ -963,10 +998,10 @@ parent cache, and may not be overriden:
 object|CHI::CacheObject> and store it in both caches. The cache object contains
 expiration information and is dependent on the serializer.  At some point we
 could conceivably add code that will use a single object or separate objects as
-necessary, and thus allow the above to be overriden.)
+necessary, and thus allow the above to be overridden.)
 
 The following options are automatically inherited by the subcache from the
-parent cache, but may be overriden:
+parent cache, but may be overridden:
 
     namespace
     on_get_error
@@ -1215,7 +1250,7 @@ created under this root class. e.g.
         expires_variance => 0.2,
     }
 
-These can be overriden by namespace defaults, storage settings, or C<new>
+These can be overridden by namespace defaults, storage settings, or C<new>
 parameters.
 
 =item memoize_cache_objects

@@ -39,12 +39,14 @@ my %WriteMakefileArgs = (
     'Log::Any' => '0.08',
     'Moose' => '0.66',
     'Storable' => '0',
+    'String::RewritePrefix' => '0',
     'Task::Weaken' => '0',
     'Time::Duration' => '1.06',
     'Time::Duration::Parse' => '0.03',
+    'Time::HiRes' => '1.30',
     'Try::Tiny' => '0.05'
   },
-  'VERSION' => '0.52',
+  'VERSION' => '0.53',
   'test' => {
     'TESTS' => 't/*.t'
   }

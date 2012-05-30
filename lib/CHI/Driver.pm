@@ -1,6 +1,6 @@
 package CHI::Driver;
 BEGIN {
-  $CHI::Driver::VERSION = '0.52';
+  $CHI::Driver::VERSION = '0.53';
 }
 use Carp;
 use CHI::CacheObject;
@@ -16,11 +16,13 @@ use CHI::Util qw(has_moose_class parse_duration);
 use CHI::Types;
 use Digest::MD5;
 use Encode;
+use Hash::MoreUtils qw(slice_grep);
 use Log::Any qw($log);
 use Moose;
 use Moose::Util::TypeConstraints;
 use Scalar::Util qw(blessed);
 use Time::Duration;
+use Time::HiRes qw(gettimeofday);
 use strict;
 use warnings;
 
@@ -92,6 +94,9 @@ sub cache_object_class { 'CHI::CacheObject' }
 our $Test_Time;    ## no critic (ProhibitPackageVars)
 our $Build_Depth = 0;    ## no critic (ProhibitPackageVars)
 
+sub valid_get_options { qw(expire_if busy_lock) }
+sub valid_set_options { qw(expires_at expires_in expires_variance) }
+
 sub BUILD {
     my ( $self, $params ) = @_;
 
@@ -150,20 +155,27 @@ sub get {
     my ( $self, $key, %params ) = @_;
 
     croak "must specify key" unless defined($key);
-    my $ns_stats = $self->{ns_stats};
+    my $ns_stats     = $self->{ns_stats};
+    my $log_is_debug = $log->is_debug;
+    my $measure_time = defined($ns_stats) || $log_is_debug;
+    my ( $start_time, $elapsed_time );
 
     # Fetch cache object
     #
+    $start_time = gettimeofday() if $measure_time;
     my $obj = eval { $params{obj} || $self->get_object($key) };
+    $elapsed_time = ( gettimeofday() - $start_time ) * 1000 if $measure_time;
     if ( my $error = $@ ) {
         $ns_stats->{'get_errors'}++ if defined($ns_stats);
         $self->_handle_get_error( $error, $key );
         return undef;
     }
     if ( !defined $obj ) {
-        $ns_stats->{'absent_misses'}++ if defined($ns_stats);
-        $self->_log_get_result( $log, "MISS (not in cache)", $key )
-          if $log->is_debug;
+        $self->_record_get_stats( 'absent_misses', $elapsed_time )
+          if defined($ns_stats);
+        $self->_log_get_result( $log, "MISS (not in cache)",
+            $key, $elapsed_time )
+          if $log_is_debug;
         return undef;
     }
     if ( defined( my $obj_ref = $params{obj_ref} ) ) {
@@ -175,9 +187,10 @@ sub get {
     my $is_expired = $obj->is_expired()
       || ( defined( $params{expire_if} ) && $params{expire_if}->($obj) );
     if ($is_expired) {
-        $ns_stats->{'expired_misses'}++ if defined($ns_stats);
-        $self->_log_get_result( $log, "MISS (expired)", $key )
-          if $log->is_debug;
+        $self->_record_get_stats( 'expired_misses', $elapsed_time )
+          if defined($ns_stats);
+        $self->_log_get_result( $log, "MISS (expired)", $key, $elapsed_time )
+          if $log_is_debug;
 
         # If busy_lock value provided, set a new "temporary" expiration time that many
         # seconds forward before returning undef
@@ -193,9 +206,15 @@ sub get {
         return undef;
     }
 
-    $ns_stats->{'hits'}++ if defined($ns_stats);
-    $self->_log_get_result( $log, "HIT", $key ) if $log->is_debug;
+    $self->_record_get_stats( 'hits', $elapsed_time ) if defined($ns_stats);
+    $self->_log_get_result( $log, "HIT", $key, $elapsed_time ) if $log_is_debug;
     return $obj->value;
+}
+
+sub _record_get_stats {
+    my ( $self, $stat, $elapsed_time ) = @_;
+    $self->{ns_stats}->{$stat}++;
+    $self->{ns_stats}->{'get_time_ms'} += $elapsed_time;
 }
 
 sub unpack_from_data {
@@ -303,7 +322,10 @@ sub set {
 
 sub set_with_options {
     my ( $self, $key, $value, $options ) = @_;
-    my $ns_stats = $self->{ns_stats};
+    my $ns_stats     = $self->{ns_stats};
+    my $log_is_debug = $log->is_debug;
+    my $measure_time = defined($ns_stats) || $log_is_debug;
+    my ( $start_time, $elapsed_time );
 
     # Determine early and final expiration times
     #
@@ -328,7 +350,10 @@ sub set_with_options {
     if ( defined( my $obj_ref = $options->{obj_ref} ) ) {
         $$obj_ref = $obj;
     }
+    $start_time = gettimeofday() if $measure_time;
     if ( $self->set_object( $key, $obj ) ) {
+        $elapsed_time = ( gettimeofday() - $start_time ) * 1000
+          if $measure_time;
 
         # Log the set
         #
@@ -336,9 +361,10 @@ sub set_with_options {
             $ns_stats->{'sets'}++;
             $ns_stats->{'set_key_size'}   += length( $obj->key );
             $ns_stats->{'set_value_size'} += $obj->size;
+            $ns_stats->{'set_time_ms'}    += $elapsed_time;
         }
-        if ( $log->is_debug ) {
-            $self->_log_set_result( $log, $obj );
+        if ($log_is_debug) {
+            $self->_log_set_result( $log, $obj, $elapsed_time );
         }
     }
 
@@ -392,8 +418,9 @@ sub expire {
 }
 
 sub compute {
-    my $self = shift;
-    my $key  = shift;
+    my $self      = shift;
+    my $key       = shift;
+    my $wantarray = wantarray();
 
     # Allow these in either order for backward compatibility
     my ( $code, $options ) =
@@ -403,17 +430,28 @@ sub compute {
 
     my %get_options =
       ( ref($options) eq 'HASH' )
-      ? (
-        map { exists( $options->{$_} ) ? ( $_, delete( $options->{$_} ) ) : () }
-          qw(expire_if busy_lock)
-      )
+      ? slice_grep { /(?:expire_if|busy_lock)/ } $options
       : ();
+    my $set_options =
+        ( ref($options) eq 'HASH' )
+      ? { slice_grep { !/(?:expire_if|busy_lock)/ } $options }
+      : $options;
+
     my $value = $self->get( $key, %get_options );
     if ( !defined $value ) {
-        $value = $code->();
-        $self->set( $key, $value, $options );
+        my ( $start_time, $elapsed_time );
+        my $ns_stats = $self->{ns_stats};
+        $start_time = gettimeofday if defined($ns_stats);
+        $value = $wantarray ? [ $code->() ] : $code->();
+        $elapsed_time = ( gettimeofday() - $start_time ) * 1000
+          if defined($ns_stats);
+        $self->set( $key, $value, $set_options );
+        if ( defined($ns_stats) ) {
+            $ns_stats->{'computes'}++;
+            $ns_stats->{'compute_time_ms'} += $elapsed_time;
+        }
     }
-    return $value;
+    return $wantarray ? @$value : $value;
 }
 
 sub purge {
@@ -524,6 +562,11 @@ sub get_multi_hashref {
 }
 
 sub set_multi {
+    my $self = shift;
+    $self->store_multi(@_);
+}
+
+sub store_multi {
     my ( $self, $key_values, $set_options ) = @_;
     croak "must specify key_values" unless defined($key_values);
 
@@ -661,14 +704,17 @@ sub _dispatch_error_msg {
 }
 
 sub _describe_cache_get {
-    my ( $self, $key ) = @_;
+    my ( $self, $key, $elapsed_time ) = @_;
 
-    return sprintf( "cache get for namespace='%s', key='%s', cache='%s'",
-        $self->namespace, $key, $self->label );
+    return
+      sprintf( "cache get for namespace='%s', key='%s', cache='%s'"
+          . ( defined($elapsed_time) ? ", time='%dms'" : "" ),
+        $self->namespace, $key, $self->label,
+        defined($elapsed_time) ? int($elapsed_time) : () );
 }
 
 sub _describe_cache_set {
-    my ( $self, $obj ) = @_;
+    my ( $self, $obj, $elapsed_time ) = @_;
 
     my $expires_str = (
         ( $obj->expires_at == CHI_Max_Time )
@@ -682,8 +728,11 @@ sub _describe_cache_set {
 
     return
       sprintf(
-        "cache set for namespace='%s', key='%s', size=%d, expires='%s', cache='%s'",
-        $self->namespace, $obj->key, $obj->size, $expires_str, $self->label );
+        "cache set for namespace='%s', key='%s', size=%d, expires='%s', cache='%s'"
+          . ( defined($elapsed_time) ? ", time='%dms'" : "" ),
+        $self->namespace, $obj->key, $obj->size, $expires_str, $self->label,
+        defined($elapsed_time) ? int($elapsed_time) : () );
+
 }
 
 1;
@@ -698,7 +747,7 @@ CHI::Driver - Base class for all CHI drivers
 
 =head1 VERSION
 
-version 0.52
+version 0.53
 
 =head1 DESCRIPTION
 

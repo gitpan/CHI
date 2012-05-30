@@ -1,6 +1,6 @@
 package CHI::t::RequiredModules;
 BEGIN {
-  $CHI::t::RequiredModules::VERSION = '0.52';
+  $CHI::t::RequiredModules::VERSION = '0.53';
 }
 use strict;
 use warnings;

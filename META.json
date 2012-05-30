@@ -47,9 +47,11 @@
             "Log::Any" : "0.08",
             "Moose" : "0.66",
             "Storable" : 0,
+            "String::RewritePrefix" : 0,
             "Task::Weaken" : 0,
             "Time::Duration" : "1.06",
             "Time::Duration::Parse" : "0.03",
+            "Time::HiRes" : "1.30",
             "Try::Tiny" : "0.05"
          }
       },
@@ -77,6 +79,6 @@
          "web" : "https://github.com/jonswar/perl-chi"
       }
    },
-   "version" : "0.52"
+   "version" : "0.53"
 }
 

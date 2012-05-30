@@ -1,6 +1,6 @@
 package CHI::t::Driver;
 BEGIN {
-  $CHI::t::Driver::VERSION = '0.52';
+  $CHI::t::Driver::VERSION = '0.53';
 }
 use strict;
 use warnings;
@@ -15,6 +15,7 @@ use List::Util qw(shuffle);
 use Scalar::Util qw(weaken);
 use Storable qw(dclone);
 use Test::Warn;
+use Time::HiRes qw(usleep);
 use base qw(CHI::Test::Class);
 
 # Flags indicating what each test driver supports
@@ -90,7 +91,7 @@ sub new_cache_options {
     my $self = shift;
 
     return (
-        driver_class => $self->testing_driver_class(),
+        driver       => '+' . $self->testing_driver_class(),
         on_get_error => 'die',
         on_set_error => 'die'
     );
@@ -586,7 +587,7 @@ sub test_serialize : Tests {
 {
     package DummySerializer;
 BEGIN {
-  $DummySerializer::VERSION = '0.52';
+  $DummySerializer::VERSION = '0.53';
 }
     sub serialize   { }
     sub deserialize { }
@@ -824,20 +825,20 @@ sub test_l1_cache : Tests {
         # get_multi_* - one from l1 cache, one from primary cache, one miss
         #
         $cache->set( $keys[0], $values[0] );
-        $cache->set( $keys[1], $values[0] );
+        $cache->set( $keys[1], $values[1] );
         $l1_cache->remove( $keys[0] );
-        $l1_cache->set( $keys[1], $values[1] );
+        $l1_cache->set( $keys[1], $values[2] );
 
         cmp_deeply(
             $cache->get_multi_arrayref( [ $keys[0], $keys[1], $keys[2] ] ),
-            [ $values[0], $values[1], undef ],
+            [ $values[0], $values[2], undef ],
             "get_multi_arrayref"
         );
         cmp_deeply(
             $cache->get_multi_hashref( [ $keys[0], $keys[1], $keys[2] ] ),
             {
                 $keys[0] => $values[0],
-                $keys[1] => $values[1],
+                $keys[1] => $values[2],
                 $keys[2] => undef
             },
             "get_multi_hashref"
@@ -963,39 +964,46 @@ sub _test_logging_with_l1_cache {
 
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver': $miss_not_in_cache/);
+        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': $miss_not_in_cache/
+    );
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='.*l1.*': $miss_not_in_cache/);
+        qr/cache get for .* key='$key', cache='.*l1.*', time='\d+ms': $miss_not_in_cache/
+    );
     $log->empty_ok();
 
     $cache->set( $key, $value, 81 );
     $log->contains_ok(
-        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='$driver'/
+        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='$driver', time='\d+ms'/
     );
 
     $log->contains_ok(
-        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='.*l1.*'/
+        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='.*l1.*', time='\d+ms'/
     );
     $log->empty_ok();
 
     $cache->get($key);
-    $log->contains_ok(qr/cache get for .* key='$key', cache='.*l1.*': HIT/);
+    $log->contains_ok(
+        qr/cache get for .* key='$key', cache='.*l1.*', time='\d+ms': HIT/);
     $log->empty_ok();
 
     local $CHI::Driver::Test_Time = $start_time + 120;
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver': $miss_expired/);
+        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': $miss_expired/
+    );
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='.*l1.*': $miss_expired/);
+        qr/cache get for .* key='$key', cache='.*l1.*', time='\d+ms': $miss_expired/
+    );
     $log->empty_ok();
 
     $cache->remove($key);
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver': $miss_not_in_cache/);
+        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': $miss_not_in_cache/
+    );
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='.*l1.*': $miss_not_in_cache/);
+        qr/cache get for .* key='$key', cache='.*l1.*', time='\d+ms': $miss_not_in_cache/
+    );
     $log->empty_ok();
 }
 
@@ -1015,33 +1023,37 @@ sub _test_logging_with_mirror_cache {
 
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver': $miss_not_in_cache/);
+        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': $miss_not_in_cache/
+    );
     $log->empty_ok();
 
     $cache->set( $key, $value, 81 );
     $log->contains_ok(
-        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='$driver'/
+        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='$driver', time='\d+ms'/
     );
 
     $log->contains_ok(
-        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='.*mirror.*'/
+        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='.*mirror.*', time='\d+ms'/
     );
     $log->empty_ok();
 
     $cache->get($key);
-    $log->contains_ok(qr/cache get for .* key='$key', cache='$driver': HIT/);
+    $log->contains_ok(
+        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': HIT/);
     $log->empty_ok();
 
     local $CHI::Driver::Test_Time = $start_time + 120;
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver': $miss_expired/);
+        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': $miss_expired/
+    );
     $log->empty_ok();
 
     $cache->remove($key);
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver': $miss_not_in_cache/);
+        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': $miss_not_in_cache/
+    );
     $log->empty_ok();
 }
 
@@ -1194,34 +1206,38 @@ sub test_logging : Tests {
 
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver': $miss_not_in_cache/);
+        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': $miss_not_in_cache/
+    );
     $log->empty_ok();
 
     $cache->set( $key, $value );
     $log->contains_ok(
-        qr/cache set for .* key='$key', size=\d+, expires='never', cache='$driver'/
+        qr/cache set for .* key='$key', size=\d+, expires='never', cache='$driver', time='\d+ms'/
     );
     $log->empty_ok();
     $cache->set( $key, $value, 81 );
     $log->contains_ok(
-        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='$driver'/
+        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='$driver', time='\d+ms'/
     );
     $log->empty_ok();
 
     $cache->get($key);
-    $log->contains_ok(qr/cache get for .* key='$key', cache='$driver': HIT/);
+    $log->contains_ok(
+        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': HIT/);
     $log->empty_ok();
 
     local $CHI::Driver::Test_Time = $start_time + 120;
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver': $miss_expired/);
+        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': $miss_expired/
+    );
     $log->empty_ok();
 
     $cache->remove($key);
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver': $miss_not_in_cache/);
+        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': $miss_not_in_cache/
+    );
     $log->empty_ok();
 }
 
@@ -1248,15 +1264,24 @@ sub test_stats : Tests {
     $cache->set( $key, scalar( $value x 3 ) );
     $cache->set( $key, $value );
 
+    $cache = $self->new_cache( namespace => 'Baz' );
+    my $code = sub { usleep(100000); scalar( $value x 5 ) };
+    $cache->compute( $key, undef, $code );
+    $cache->compute( $key, undef, $code );
+    $cache->compute( $key, undef, $code );
+
     my $log   = activate_test_logger();
     my $label = $cache->label;
     $log->empty_ok();
     $stats->flush();
     $log->contains_ok(
-        qr/CHI stats: namespace='Foo'; cache='$label'; start=.*; end=.*; absent_misses=2; expired_misses=1; hits=1; set_key_size=6; set_value_size=20; sets=1/
+        qr/CHI stats: namespace='Foo'; cache='$label'; start=.*; end=.*; absent_misses=2; expired_misses=1; get_time_ms=\d+; hits=1; set_key_size=6; set_time_ms=\d+; set_value_size=20; sets=1/
     );
     $log->contains_ok(
-        qr/CHI stats: namespace='Bar'; cache='$label'; start=.*; end=.*; set_key_size=12; set_value_size=52; sets=2/
+        qr/CHI stats: namespace='Bar'; cache='$label'; start=.*; end=.*; set_key_size=12; set_time_ms=\d+; set_value_size=52; sets=2/
+    );
+    $log->contains_ok(
+        qr/CHI stats: namespace='Baz'; cache='$label'; start=.*; end=.*; absent_misses=1; compute_time_ms=\d\d+; computes=1; get_time_ms=\d+; hits=2; set_key_size=6; set_time_ms=\d+; set_value_size=44; sets=1/
     );
     $log->empty_ok();
 
@@ -1715,6 +1740,16 @@ sub test_compute : Tests {
         is( $cache->compute( 'foo', @args2 ), 6, "compute - 6" );
         is( $cache->get('foo'), 6, "hit - 6" );
     }
+
+    # Test wantarray
+    $cache->clear();
+    my $compute_list = sub {
+        $cache->compute( 'foo', {}, sub { ( int( rand(10000) ) ) x 5 } );
+    };
+    my @list1 = $compute_list->();
+    my @list2 = $compute_list->();
+    is( scalar(@list1), 5, "list has 5 items" );
+    cmp_deeply( \@list1, \@list2, "lists are the same" );
 }
 
 sub test_compress_threshold : Tests {

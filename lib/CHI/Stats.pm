@@ -1,6 +1,6 @@
 package CHI::Stats;
 BEGIN {
-  $CHI::Stats::VERSION = '0.52';
+  $CHI::Stats::VERSION = '0.53';
 }
 use Log::Any qw($log);
 use Moose;
@@ -35,14 +35,14 @@ sub flush {
 }
 
 sub log_namespace_stats {
-    my ( $self, $label, $namespace, $namespace_stats ) = @_;
+    my ( $self, $label, $namespace, $ns ) = @_;
 
     my $fields_string = join( "; ",
-        map { join( "=", $_, $namespace_stats->{$_} ) }
+        map { join( "=", $_, ( /_ms$/ ? int( $ns->{$_} ) : $ns->{$_} ) ) }
         grep { $_ ne 'start_time' }
-        sort keys(%$namespace_stats) );
+        sort keys(%$ns) );
     if ($fields_string) {
-        my $start_time = $namespace_stats->{start_time};
+        my $start_time = $ns->{start_time};
         my $end_time   = time;
         $log->infof(
             '%s stats: namespace=\'%s\'; cache=\'%s\'; start=%s; end=%s; %s',
@@ -60,7 +60,7 @@ sub format_time {
     my ($time) = @_;
 
     my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst ) =
-      localtime();
+      localtime($time);
     return sprintf(
         "%04d%02d%02d:%02d:%02d:%02d",
         $year + 1900,
@@ -137,7 +137,7 @@ CHI::Stats - Record and report per-namespace cache statistics
 
 =head1 VERSION
 
-version 0.52
+version 0.53
 
 =head1 SYNOPSIS
 
@@ -164,7 +164,7 @@ A single CHI::Stats object is maintained for each CHI root class, and tallies
 statistics over any number of CHI::Driver objects.
 
 Statistics are reported when you call the L</flush> method. You can choose to
-this once at process end, or on a periodic basis.
+do this once at process end, or on a periodic basis.
 
 =head1 STATISTICS
 
@@ -178,11 +178,27 @@ absent_misses - Number of gets that failed due to item not being in the cache
 
 =item *
 
+compute_time_ms - Total time spent computing missed results in
+L<compute|CHI/compute>, in ms (divide by number of computes to get average).
+i.e. the amount of time spent in the code reference passed as the third
+argument to compute().
+
+=item *
+
+computes - Number of L<compute|CHI/compute> calls
+
+=item *
+
 expired_misses - Number of gets that failed due to item expiring
 
 =item *
 
 get_errors - Number of caught runtime errors during gets
+
+=item *
+
+get_time_ms - Total time spent in get operation, in ms (divide by number of
+gets to get average)
 
 =item *
 
@@ -197,6 +213,11 @@ average)
 
 set_value_size - Number of bytes in set values (divide by number of sets to get
 average)
+
+=item *
+
+set_time_ms - Total time spent in set operation, in ms (divide by number of
+sets to get average)
 
 =item *
 

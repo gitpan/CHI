@@ -2,6 +2,23 @@ Revision history for CHI
 
 ** denotes an incompatible change
 
+0.53  May 30, 2012
+
+* Improvements
+  - Measure time elapsed in get, set, and compute; record in logs and stats. Only
+    measure when debug logging or stats are enabled.
+  - compute() now handles list or scalar caller context
+  - The driver parameter now accepts full classes prefixed by '+', as is standard.
+    driver_class is still accepted for backward compatibility but no longer documented.
+
+* Fixes
+  - compute() no longer modifies passed-in options hashref
+  - Fix get_multi_* with partially empty l1 cache - perl-chi/pull/12 (Mike Cartmell)
+  - Fix get_keys when file_extension set on CHI::Driver::File (Vitaliy Tokarev)
+  - Have set_multi call store_multi underneath as documented in Development.pod - RT
+    #76621 (Oliver Paukstadt)
+  - Minor POD fixes (Alessandro Ghedini)
+
 0.52  Mar 7, 2012
 
 * Improvements
