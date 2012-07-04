@@ -1,6 +1,6 @@
 package CHI::Driver::Role::HasSubcaches;
 BEGIN {
-  $CHI::Driver::Role::HasSubcaches::VERSION = '0.54';
+  $CHI::Driver::Role::HasSubcaches::VERSION = '0.55';
 }
 use Moose::Role;
 use Hash::MoreUtils qw(slice_exists);
@@ -148,7 +148,7 @@ around 'get_multi_arrayref' => sub {
                 defined( $l1_values->[$_] )
                   ? $l1_values->[$_]
                   : shift(@$primary_values)
-              } @indices
+            } @indices
         ];
         return $values;
     }

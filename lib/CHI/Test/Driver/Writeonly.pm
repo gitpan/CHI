@@ -1,6 +1,6 @@
 package CHI::Test::Driver::Writeonly;
 BEGIN {
-  $CHI::Test::Driver::Writeonly::VERSION = '0.54';
+  $CHI::Test::Driver::Writeonly::VERSION = '0.55';
 }
 use Carp;
 use strict;

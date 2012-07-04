@@ -59,6 +59,7 @@ lib/CHI/t/SetError.pm
 lib/CHI/t/Subcache.pm
 lib/CHI/t/Subclass.pm
 lib/CHI/t/Util.pm
+perlcriticrc
 t/00-load.t
 t/Bugs.t
 t/Config.t
@@ -93,3 +94,4 @@ t/smoke-Driver-NonMoose.t
 t/smoke-Driver-Subcache-l1_cache.t
 t/smoke-Driver-Subcache-mirror_cache.t
 t/smoke-Null.t
+tidyall.ini

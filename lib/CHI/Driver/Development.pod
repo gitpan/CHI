@@ -9,7 +9,7 @@ CHI::Driver::Development -- Manual for developing new CHI drivers
 
 =head1 VERSION
 
-version 0.54
+version 0.55
 
 =head1 SYNOPSIS
 

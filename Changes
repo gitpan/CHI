@@ -2,6 +2,14 @@ Revision history for CHI
 
 ** denotes an incompatible change
 
+0.55  Jul 3, 2012
+
+* Improvements
+  - Compute derived/aggregate stats in CHI::Stats::parse_stats_logs
+
+* Fixes
+  - Eliminate "=for html" POD entries, which were mangling metacpan.org output (Pedro Melo)
+
 0.54  May 30, 2012
 
 ** Incompatibile Changes **

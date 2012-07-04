@@ -1,6 +1,6 @@
 package CHI::Driver::File;
 BEGIN {
-  $CHI::Driver::File::VERSION = '0.54';
+  $CHI::Driver::File::VERSION = '0.55';
 }
 use Carp;
 use Cwd qw(realpath cwd);
@@ -250,7 +250,7 @@ directory structure
 
 =head1 VERSION
 
-version 0.54
+version 0.55
 
 =head1 SYNOPSIS
 

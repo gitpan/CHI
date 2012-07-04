@@ -1,6 +1,6 @@
 package CHI::t::Driver;
 BEGIN {
-  $CHI::t::Driver::VERSION = '0.54';
+  $CHI::t::Driver::VERSION = '0.55';
 }
 use strict;
 use warnings;
@@ -587,7 +587,7 @@ sub test_serialize : Tests {
 {
     package DummySerializer;
 BEGIN {
-  $DummySerializer::VERSION = '0.54';
+  $DummySerializer::VERSION = '0.55';
 }
     sub serialize   { }
     sub deserialize { }
@@ -964,45 +964,45 @@ sub _test_logging_with_l1_cache {
 
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': $miss_not_in_cache/
+        qr/cache get for .* key='$key', cache='$driver', time='[-\d]+ms': $miss_not_in_cache/
     );
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='.*l1.*', time='\d+ms': $miss_not_in_cache/
+        qr/cache get for .* key='$key', cache='.*l1.*', time='[-\d]+ms': $miss_not_in_cache/
     );
     $log->empty_ok();
 
     $cache->set( $key, $value, 81 );
     $log->contains_ok(
-        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='$driver', time='\d+ms'/
+        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='$driver', time='[-\d]+ms'/
     );
 
     $log->contains_ok(
-        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='.*l1.*', time='\d+ms'/
+        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='.*l1.*', time='[-\d]+ms'/
     );
     $log->empty_ok();
 
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='.*l1.*', time='\d+ms': HIT/);
+        qr/cache get for .* key='$key', cache='.*l1.*', time='[-\d]+ms': HIT/);
     $log->empty_ok();
 
     local $CHI::Driver::Test_Time = $start_time + 120;
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': $miss_expired/
+        qr/cache get for .* key='$key', cache='$driver', time='[-\d]+ms': $miss_expired/
     );
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='.*l1.*', time='\d+ms': $miss_expired/
+        qr/cache get for .* key='$key', cache='.*l1.*', time='[-\d]+ms': $miss_expired/
     );
     $log->empty_ok();
 
     $cache->remove($key);
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': $miss_not_in_cache/
+        qr/cache get for .* key='$key', cache='$driver', time='[-\d]+ms': $miss_not_in_cache/
     );
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='.*l1.*', time='\d+ms': $miss_not_in_cache/
+        qr/cache get for .* key='$key', cache='.*l1.*', time='[-\d]+ms': $miss_not_in_cache/
     );
     $log->empty_ok();
 }
@@ -1023,36 +1023,36 @@ sub _test_logging_with_mirror_cache {
 
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': $miss_not_in_cache/
+        qr/cache get for .* key='$key', cache='$driver', time='[-\d]+ms': $miss_not_in_cache/
     );
     $log->empty_ok();
 
     $cache->set( $key, $value, 81 );
     $log->contains_ok(
-        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='$driver', time='\d+ms'/
+        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='$driver', time='[-\d]+ms'/
     );
 
     $log->contains_ok(
-        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='.*mirror.*', time='\d+ms'/
+        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='.*mirror.*', time='[-\d]+ms'/
     );
     $log->empty_ok();
 
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': HIT/);
+        qr/cache get for .* key='$key', cache='$driver', time='[-\d]+ms': HIT/);
     $log->empty_ok();
 
     local $CHI::Driver::Test_Time = $start_time + 120;
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': $miss_expired/
+        qr/cache get for .* key='$key', cache='$driver', time='[-\d]+ms': $miss_expired/
     );
     $log->empty_ok();
 
     $cache->remove($key);
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': $miss_not_in_cache/
+        qr/cache get for .* key='$key', cache='$driver', time='[-\d]+ms': $miss_not_in_cache/
     );
     $log->empty_ok();
 }
@@ -1206,37 +1206,37 @@ sub test_logging : Tests {
 
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': $miss_not_in_cache/
+        qr/cache get for .* key='$key', cache='$driver', time='[-\d]+ms': $miss_not_in_cache/
     );
     $log->empty_ok();
 
     $cache->set( $key, $value );
     $log->contains_ok(
-        qr/cache set for .* key='$key', size=\d+, expires='never', cache='$driver', time='\d+ms'/
+        qr/cache set for .* key='$key', size=\d+, expires='never', cache='$driver', time='[-\d]+ms'/
     );
     $log->empty_ok();
     $cache->set( $key, $value, 81 );
     $log->contains_ok(
-        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='$driver', time='\d+ms'/
+        qr/cache set for .* key='$key', size=\d+, expires='1m2[012]s', cache='$driver', time='[-\d]+ms'/
     );
     $log->empty_ok();
 
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': HIT/);
+        qr/cache get for .* key='$key', cache='$driver', time='[-\d]+ms': HIT/);
     $log->empty_ok();
 
     local $CHI::Driver::Test_Time = $start_time + 120;
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': $miss_expired/
+        qr/cache get for .* key='$key', cache='$driver', time='[-\d]+ms': $miss_expired/
     );
     $log->empty_ok();
 
     $cache->remove($key);
     $cache->get($key);
     $log->contains_ok(
-        qr/cache get for .* key='$key', cache='$driver', time='\d+ms': $miss_not_in_cache/
+        qr/cache get for .* key='$key', cache='$driver', time='[-\d]+ms': $miss_not_in_cache/
     );
     $log->empty_ok();
 }
@@ -1289,13 +1289,13 @@ sub test_stats : Tests {
     $log->empty_ok();
 
     my @logs = (
-        'CHI stats: {"root_class":"CHI","namespace":"Foo","label":"File","start_time":1338404896,"end_time":1338404899,"hits":3,"sets":5}',
-        'CHI stats: {"root_class":"CHI","namespace":"Foo","label":"File","start_time":1338404896,"end_time":1338404899,"hits":1,"sets":7}',
-        'CHI stats: {"root_class":"CHI","namespace":"Bar","label":"File","start_time":1338404896,"end_time":1338404899,"hits":4,"sets":9}',
-        'CHI stats: {"root_class":"CHI","namespace":"Foo","label":"File","start_time":1338404896,"end_time":1338404899,"sets":3}',
+        'CHI stats: {"root_class":"CHI","namespace":"Foo","label":"File","start_time":1338404896,"end_time":1338404899,"hits":3,"sets":5,"set_time_ms":10}',
+        'CHI stats: {"root_class":"CHI","namespace":"Foo","label":"File","start_time":1338404896,"end_time":1338404899,"hits":1,"sets":7,"set_time_ms":14}',
+        'CHI stats: {"root_class":"CHI","namespace":"Bar","label":"File","start_time":1338404896,"end_time":1338404899,"hits":4,"sets":9,"set_time_ms":18}',
+        'CHI stats: {"root_class":"CHI","namespace":"Foo","label":"File","start_time":1338404896,"end_time":1338404899,"sets":3,"set_time_ms":6}',
         'CHI stats: {"root_class":"CHI","namespace":"Foo","label":"File","start_time":1338404896,"end_time":1338404899,"hits":8}',
-        'CHI stats: {"root_class":"CHI","namespace":"Foo","label":"Memory","start_time":1338404896,"end_time":1338404899,"sets":2}',
-        'CHI stats: {"root_class":"CHI","namespace":"Bar","label":"File","start_time":1338404896,"end_time":1338404899,"hits":10,"sets":1}',
+        'CHI stats: {"root_class":"CHI","namespace":"Foo","label":"Memory","start_time":1338404896,"end_time":1338404899,"sets":2,"set_time_ms":4}',
+        'CHI stats: {"root_class":"CHI","namespace":"Bar","label":"File","start_time":1338404896,"end_time":1338404899,"hits":10,"sets":1,"set_time_ms":2}',
         'CHI stats: {"root_class":"CHI","namespace":"Bar","label":"File","start_time":1338404896,"end_time":1338404899,"hits":3,"set_errors":2}',
     );
     my $log_dir = tempdir( "chi-test-stats-XXXX", TMPDIR => 1, CLEANUP => 1 );
@@ -1306,29 +1306,49 @@ sub test_stats : Tests {
     close($fh2);
     cmp_deeply(
         $results,
-        [
+        Test::Deep::bag(
             {
-                root_class => 'CHI',
-                namespace  => 'Foo',
-                label      => 'File',
-                hits       => 12,
-                sets       => 15
+                avg_set_time_ms => '2',
+                gets            => 12,
+                hit_rate        => '1',
+                hits            => 12,
+                label           => 'File',
+                namespace       => 'Foo',
+                root_class      => 'CHI',
+                set_time_ms     => 30,
+                sets            => 15
             },
             {
-                root_class => 'CHI',
-                namespace  => 'Bar',
-                label      => 'File',
-                hits       => 17,
-                sets       => 10,
-                set_errors => 2
+                avg_set_time_ms => '2',
+                gets            => 17,
+                hit_rate        => '1',
+                hits            => 17,
+                label           => 'File',
+                namespace       => 'Bar',
+                root_class      => 'CHI',
+                set_errors      => 2,
+                set_time_ms     => 20,
+                sets            => 10
             },
             {
-                root_class => 'CHI',
-                namespace  => 'Foo',
-                label      => 'Memory',
-                sets       => 2
+                avg_set_time_ms => '2',
+                label           => 'Memory',
+                namespace       => 'Foo',
+                root_class      => 'CHI',
+                set_time_ms     => 4,
+                sets            => 2
+            },
+            {
+                avg_set_time_ms => '2',
+                hits            => '29',
+                label           => 'TOTALS',
+                namespace       => 'TOTALS',
+                root_class      => 'TOTALS',
+                set_errors      => '2',
+                set_time_ms     => 54,
+                sets            => 27
             }
-        ],
+        ),
         'parse_stats_logs'
     );
 }

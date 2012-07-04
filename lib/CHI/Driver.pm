@@ -1,6 +1,6 @@
 package CHI::Driver;
 BEGIN {
-  $CHI::Driver::VERSION = '0.54';
+  $CHI::Driver::VERSION = '0.55';
 }
 use Carp;
 use CHI::CacheObject;
@@ -532,7 +532,7 @@ sub get_multi_hashref_objects {
             defined($data)
               ? ( $_, $self->unpack_from_data( $_, $data ) )
               : ( $_, undef )
-          } keys(%$key_data)
+        } keys(%$key_data)
     };
 }
 
@@ -548,7 +548,7 @@ sub get_multi_arrayref {
             my $key = $transformed_keys->[$_];
             my $obj = $keyobjs->{$key};
             $obj ? $self->get( $key, obj => $obj ) : undef
-          } ( 0 .. $key_count - 1 )
+        } ( 0 .. $key_count - 1 )
     ];
 }
 
@@ -747,7 +747,7 @@ CHI::Driver - Base class for all CHI drivers
 
 =head1 VERSION
 
-version 0.54
+version 0.55
 
 =head1 DESCRIPTION
 
