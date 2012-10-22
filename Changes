@@ -2,6 +2,18 @@ Revision history for CHI
 
 ** denotes an incompatible change
 
+0.56  Oct 22, 2012
+
+* Fixes
+  - Mention testing_driver_class in CHI/Driver/Development.pm - RT #78921 (Nigel Horne)
+
+* Tests
+  - Add test_multiple_processes for testing drivers under concurrent writes - RT #79132 (Nigel Horne)
+
+* Docs
+  - Mention that driver tests are responsible for their own cleanup - RT #79100 (Nigel Horne)
+  - Various spelling fixes thanks to Pod::Spell
+
 0.55  Jul 3, 2012
 
 * Improvements
@@ -12,7 +24,7 @@ Revision history for CHI
 
 0.54  May 30, 2012
 
-** Incompatibile Changes **
+** Incompatible Changes **
   - ** Switch CHI::Stats format to JSON for easier generation and parsing
 
 0.53  May 30, 2012
@@ -27,7 +39,7 @@ Revision history for CHI
 * Fixes
   - compute() no longer modifies passed-in options hashref
   - Fix get_multi_* with partially empty l1 cache - perl-chi/pull/12 (Mike Cartmell)
-  - Fix get_keys when file_extension set on CHI::Driver::File (Vitaliy Tokarev)
+  - Fix get_keys when file_extension set on CHI::Driver::File - RT #76489 (Vitaliy Tokarev)
   - Have set_multi call store_multi underneath as documented in Development.pod - RT
     #76621 (Oliver Paukstadt)
   - Minor POD fixes (Alessandro Ghedini)

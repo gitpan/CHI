@@ -9,7 +9,7 @@ CHI::Benchmarks - Benchmarks of CHI and non-CHI drivers
 
 =head1 VERSION
 
-version 0.55
+version 0.56
 
 =head1 DESCRIPTION
 
@@ -19,8 +19,8 @@ These benchmarks were created by running
 
 for CHI 0.42, on OS X v10.6.6, 2.2 GHz Intel Core 2 Duo, Perl 5.12.2.
 
-For each cache, bench.pl does repeated gets and sets of a data structure for at
-least 10 seconds and measures the wallclock time per operation.
+For each cache, C<bench.pl> does repeated gets and sets of a data structure for
+at least 10 seconds and measures the wallclock time per operation.
 
 These numbers should just be used as a rough guideline! Actual results will
 vary widely depending on system, get/set pattern, actual values being set, the
@@ -56,7 +56,7 @@ Jonathan Swartz <swartz@pobox.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2011 by Jonathan Swartz.
+This software is copyright (c) 2012 by Jonathan Swartz.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

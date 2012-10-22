@@ -1,6 +1,6 @@
 package CHI::Driver::RawMemory;
 BEGIN {
-  $CHI::Driver::RawMemory::VERSION = '0.55';
+  $CHI::Driver::RawMemory::VERSION = '0.56';
 }
 use Moose;
 use strict;
@@ -30,7 +30,7 @@ CHI::Driver::RawMemory - In-process memory cache that stores direct references
 
 =head1 VERSION
 
-version 0.55
+version 0.56
 
 =head1 SYNOPSIS
 
@@ -47,7 +47,7 @@ This is a subclass of L<CHI::Driver::Memory|CHI::Driver::Memory> that stores
 references to data structures directly instead of serializing / deserializing. 
 This makes the cache faster at getting and setting complex data structures, but
 unlike most drivers, modifications to the original data structure I<will>
-affect the data structure stored in the cache, and vica versa. e.g.
+affect the data structure stored in the cache, and vice versa. e.g.
 
     my $cache = CHI->new( driver => 'Memory', global => 1 );
     my $lst = ['foo'];
@@ -77,7 +77,7 @@ good way to determine their size.)
     #
     my $cache = CHI->new( driver => 'RawMemory', datastore => {}, max_size => 10 );
 
-=head1 ACKNOWLEDGEMENTS
+=head1 ACKNOWLEDGMENTS
 
 Thanks to Yuval Kogman whose L<Cache::Ref> inspired me to do this.
 
@@ -91,7 +91,7 @@ Jonathan Swartz <swartz@pobox.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2011 by Jonathan Swartz.
+This software is copyright (c) 2012 by Jonathan Swartz.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

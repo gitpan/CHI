@@ -1,6 +1,6 @@
 package CHI::t::Driver::Memory;
 BEGIN {
-  $CHI::t::Driver::Memory::VERSION = '0.55';
+  $CHI::t::Driver::Memory::VERSION = '0.56';
 }
 use strict;
 use warnings;
@@ -10,7 +10,7 @@ use Test::Warn;
 use base qw(CHI::t::Driver);
 
 # Skip multiple process test
-sub test_multiple_procs { }
+sub test_multiple_processes { }
 
 sub new_cache_options {
     my $self = shift;

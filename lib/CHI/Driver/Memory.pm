@@ -1,6 +1,6 @@
 package CHI::Driver::Memory;
 BEGIN {
-  $CHI::Driver::Memory::VERSION = '0.55';
+  $CHI::Driver::Memory::VERSION = '0.56';
 }
 use Carp qw(cluck croak);
 use CHI::Constants qw(CHI_Meta_Namespace);
@@ -43,8 +43,8 @@ sub fetch {
     my ( $self, $key ) = @_;
 
     if ( $self->{is_size_aware} ) {
-        $self->{datastore}->{ CHI_Meta_Namespace() }->{last_used_time}->{$key} =
-          time;
+        $self->{datastore}->{ CHI_Meta_Namespace() }->{last_used_time}->{$key}
+          = time;
     }
     return $self->{datastore}->{ $self->{namespace} }->{$key};
 }
@@ -105,7 +105,7 @@ CHI::Driver::Memory - In-process memory based cache
 
 =head1 VERSION
 
-version 0.55
+version 0.56
 
 =head1 SYNOPSIS
 
@@ -124,7 +124,7 @@ will remain in the cache until cleared, expired, or the process dies.
 
 To maintain the same semantics as other caches, references to data structures
 are deep-copied on set and get. Thus, modifications to the original data
-structure will not affect the data structure stored in the cache, and vica
+structure will not affect the data structure stored in the cache, and vice
 versa. See L<CHI::Driver::RawMemory> for a faster memory cache that sacrifices
 this behavior.
 
@@ -168,7 +168,7 @@ Jonathan Swartz <swartz@pobox.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2011 by Jonathan Swartz.
+This software is copyright (c) 2012 by Jonathan Swartz.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

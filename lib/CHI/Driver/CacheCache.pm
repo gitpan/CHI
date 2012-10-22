@@ -1,6 +1,6 @@
 package CHI::Driver::CacheCache;
 BEGIN {
-  $CHI::Driver::CacheCache::VERSION = '0.55';
+  $CHI::Driver::CacheCache::VERSION = '0.56';
 }
 use Cache::Cache;
 use Carp;
@@ -47,7 +47,7 @@ CHI::Driver::CacheCache - CHI wrapper for Cache::Cache
 
 =head1 VERSION
 
-version 0.55
+version 0.56
 
 =head1 SYNOPSIS
 
@@ -90,7 +90,7 @@ Jonathan Swartz <swartz@pobox.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2011 by Jonathan Swartz.
+This software is copyright (c) 2012 by Jonathan Swartz.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

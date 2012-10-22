@@ -1,6 +1,6 @@
 package CHI::Driver::Base::CacheContainer;
 BEGIN {
-  $CHI::Driver::Base::CacheContainer::VERSION = '0.55';
+  $CHI::Driver::Base::CacheContainer::VERSION = '0.56';
 }
 use Moose;
 use Moose::Util::TypeConstraints;
@@ -62,7 +62,7 @@ CHI::Driver::Base::CacheContainer - Caches that delegate to a contained cache
 
 =head1 VERSION
 
-version 0.55
+version 0.56
 
 =head1 DESCRIPTION
 
@@ -79,7 +79,7 @@ Jonathan Swartz <swartz@pobox.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2011 by Jonathan Swartz.
+This software is copyright (c) 2012 by Jonathan Swartz.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

@@ -1,6 +1,6 @@
 package CHI;
 BEGIN {
-  $CHI::VERSION = '0.55';
+  $CHI::VERSION = '0.56';
 }    ## no critic (Moose::RequireMakeImmutable)
 use 5.006;
 use Carp;
@@ -180,7 +180,7 @@ CHI - Unified cache handling interface
 
 =head1 VERSION
 
-version 0.55
+version 0.56
 
 =head1 SYNOPSIS
 
@@ -321,9 +321,9 @@ L<CHI::Driver::CacheCache|CacheCache>. This may allow the driver to better
 manage its space and evict items. Note that only simple expiration time will be
 passed along, e.g. not L</expires_variance>.
 
-If set to a number greater than 1 (e.g. 1.25), the time til expiration will be
-multiplied by that number before being passed to the backend driver. This gives
-you a customizable window of opportunity to retrieve expired items.
+If set to a number greater than 1 (e.g. 1.25), the time until expiration will
+be multiplied by that number before being passed to the backend driver. This
+gives you a customizable window of opportunity to retrieve expired items.
 
 =item key_digester [STRING|HASHREF|OBJECT]
 
@@ -540,9 +540,9 @@ earlier than the stated expiration time to help prevent cache miss stampedes.
 
 Value is between 0.0 and 1.0, with 0.0 meaning that items expire exactly when
 specified (feature is disabled), and 1.0 meaning that items might expire
-anytime from now til the stated expiration time. The default is 0.0. A setting
-of 0.10 to 0.25 would introduce a small amount of variation without interfering
-too much with intended expiration times.
+anytime from now until the stated expiration time. The default is 0.0. A
+setting of 0.10 to 0.25 would introduce a small amount of variation without
+interfering too much with intended expiration times.
 
 The probability of expiration increases as a function of how far along we are
 in the potential expiration window, with the probability being near 0 at the
@@ -677,7 +677,7 @@ will be documented thusly.  The default implementations are not atomic: the get
 and set occur discretely and another process could potentially modify the cache
 in between them.
 
-These operations are labelled ALPHA because we haven't yet figured out how they
+These operations are labeled ALPHA because we haven't yet figured out how they
 integrate with other CHI features, in particular L</SUBCACHES>. APIs and
 behavior may change.
 
@@ -693,15 +693,19 @@ Do a L<set>, but only if I<$key> is L<valid|is_valid> in the cache.
 
 =item append( $key, $new_data)
 
-Append I<$new_data> to whatever value is currently associated with I<$key>.
-Does not modify expiration or other metadata; if I<$key> exists but is expired,
-it will remain expired. Has no effect if I<$key> does not exist in the cache.
+Append I<$new_data> to whatever value is currently associated with I<$key>. Has
+no effect if I<$key> does not exist in the cache.
+
+Returns true if I<$key> was in the cache, false otherwise.
 
 This is intended for simple string values only. For efficiency's sake, CHI
 won't attempt to check for, or handle, the case where data is
 L<serialized|serializer> or L<compressed|compress_threshold>; the new data will
 simply be appended, and an error will most probably occur when you try to
 retrieve the value.
+
+Does not modify expiration or other metadata. If I<$key> exists but is expired,
+it will remain expired.
 
 If you use a driver with the non-atomic (default) implementation, some appends
 may be lost due to race conditions.
@@ -1137,7 +1141,7 @@ that can cause the size to grow inaccurate over time.
 =head1 SUBCLASSING AND CONFIGURING CHI
 
 You can subclass CHI for your own application and configure it in a variety of
-ways, e.g. pre-defining storage types and defaults for new cache objects. Your
+ways, e.g. predefining storage types and defaults for new cache objects. Your
 configuration will be independent of the main CHI class and other CHI
 subclasses.
 
@@ -1373,6 +1377,10 @@ L<CHI::Driver::BerkeleyDB|CHI::Driver::BerkeleyDB> - Cache in BerkeleyDB files
 
 L<CHI::Driver::Redis|CHI::Driver::Redis> - Cache in L<Redis|http://redis.io/>
 
+=item *
+
+L<CHI::Driver::SharedMem|CHI::Driver::SharedMem> - Cache in shared memory
+
 =back
 
 This list is likely incomplete. A complete set of drivers can be found on CPAN
@@ -1538,7 +1546,7 @@ Jonathan Swartz <swartz@pobox.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2011 by Jonathan Swartz.
+This software is copyright (c) 2012 by Jonathan Swartz.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

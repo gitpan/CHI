@@ -2,7 +2,7 @@ NAME
     CHI - Unified cache handling interface
 
 VERSION
-    version 0.55
+    version 0.56
 
 SYNOPSIS
         use CHI;
@@ -103,6 +103,8 @@ AVAILABILITY OF DRIVERS
     *   CHI::Driver::BerkeleyDB - Cache in BerkeleyDB files
 
     *   CHI::Driver::Redis - Cache in Redis
+
+    *   CHI::Driver::SharedMem - Cache in shared memory
 
     This list is likely incomplete. A complete set of drivers can be found
     on CPAN by searching for "CHI::Driver".
@@ -220,7 +222,7 @@ AUTHOR
     Jonathan Swartz <swartz@pobox.com>
 
 COPYRIGHT AND LICENSE
-    This software is copyright (c) 2011 by Jonathan Swartz.
+    This software is copyright (c) 2012 by Jonathan Swartz.
 
     This is free software; you can redistribute it and/or modify it under
     the same terms as the Perl 5 programming language system itself.

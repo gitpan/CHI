@@ -1,6 +1,6 @@
 package CHI::Driver::File;
 BEGIN {
-  $CHI::Driver::File::VERSION = '0.55';
+  $CHI::Driver::File::VERSION = '0.56';
 }
 use Carp;
 use Cwd qw(realpath cwd);
@@ -250,7 +250,7 @@ directory structure
 
 =head1 VERSION
 
-version 0.55
+version 0.56
 
 =head1 SYNOPSIS
 
@@ -316,7 +316,7 @@ Defaults to 0666.
 
 =item file_extension
 
-Extension to append to filename. Default is ".dat".
+Extension to append to filename. Default is C<.dat>.
 
 =back
 
@@ -355,7 +355,7 @@ Jonathan Swartz <swartz@pobox.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2011 by Jonathan Swartz.
+This software is copyright (c) 2012 by Jonathan Swartz.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
