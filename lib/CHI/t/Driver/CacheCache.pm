@@ -1,6 +1,6 @@
 package CHI::t::Driver::CacheCache;
 {
-  $CHI::t::Driver::CacheCache::VERSION = '0.57';
+  $CHI::t::Driver::CacheCache::VERSION = '0.58';
 }
 use strict;
 use warnings;

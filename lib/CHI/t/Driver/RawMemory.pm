@@ -1,6 +1,6 @@
 package CHI::t::Driver::RawMemory;
 {
-  $CHI::t::Driver::RawMemory::VERSION = '0.57';
+  $CHI::t::Driver::RawMemory::VERSION = '0.58';
 }
 use strict;
 use warnings;

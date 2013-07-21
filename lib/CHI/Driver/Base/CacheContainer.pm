@@ -1,6 +1,6 @@
 package CHI::Driver::Base::CacheContainer;
 {
-  $CHI::Driver::Base::CacheContainer::VERSION = '0.57';
+  $CHI::Driver::Base::CacheContainer::VERSION = '0.58';
 }
 use Moo;
 use List::MoreUtils qw( all );
@@ -59,7 +59,7 @@ CHI::Driver::Base::CacheContainer - Caches that delegate to a contained cache
 
 =head1 VERSION
 
-version 0.57
+version 0.58
 
 =head1 DESCRIPTION
 

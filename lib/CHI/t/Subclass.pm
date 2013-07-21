@@ -1,6 +1,6 @@
 package CHI::t::Subclass;
 {
-  $CHI::t::Subclass::VERSION = '0.57';
+  $CHI::t::Subclass::VERSION = '0.58';
 }
 use strict;
 use warnings;
@@ -12,7 +12,7 @@ use base qw(CHI::Test::Class);
 {
     package CHI::t::Subclass::Driver::HasUnsupported;
 {
-  $CHI::t::Subclass::Driver::HasUnsupported::VERSION = '0.57';
+  $CHI::t::Subclass::Driver::HasUnsupported::VERSION = '0.58';
 }
     use Moo;
     extends 'CHI::Driver::Memory';

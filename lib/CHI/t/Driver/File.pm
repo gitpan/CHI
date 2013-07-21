@@ -1,6 +1,6 @@
 package CHI::t::Driver::File;
 {
-  $CHI::t::Driver::File::VERSION = '0.57';
+  $CHI::t::Driver::File::VERSION = '0.58';
 }
 use strict;
 use warnings;
@@ -24,7 +24,7 @@ sub new_cache_options {
 {
     package CHI::t::Driver::File::NoTempDriver;
 {
-  $CHI::t::Driver::File::NoTempDriver::VERSION = '0.57';
+  $CHI::t::Driver::File::NoTempDriver::VERSION = '0.58';
 }
     use Moo;
     extends 'CHI::Driver::File';
@@ -38,7 +38,7 @@ sub new_cache_options {
 {
     package CHI::t::Driver::File::BadTempDriver;
 {
-  $CHI::t::Driver::File::BadTempDriver::VERSION = '0.57';
+  $CHI::t::Driver::File::BadTempDriver::VERSION = '0.58';
 }
     use Moo;
     extends 'CHI::Driver::File';

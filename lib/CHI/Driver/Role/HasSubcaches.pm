@@ -1,6 +1,6 @@
 package CHI::Driver::Role::HasSubcaches;
 {
-  $CHI::Driver::Role::HasSubcaches::VERSION = '0.57';
+  $CHI::Driver::Role::HasSubcaches::VERSION = '0.58';
 }
 use Moo::Role;
 use CHI::Types qw(:all);

@@ -1,6 +1,6 @@
 package CHI::t::Config;
 {
-  $CHI::t::Config::VERSION = '0.57';
+  $CHI::t::Config::VERSION = '0.58';
 }
 use CHI::Util qw(dump_one_line);
 use CHI::Test;
@@ -26,7 +26,7 @@ my %config = (
 {
     package My::CHI;
 {
-  $My::CHI::VERSION = '0.57';
+  $My::CHI::VERSION = '0.58';
 }
     use base qw(CHI);
     My::CHI->config( {%config} );
@@ -35,7 +35,7 @@ my %config = (
 {
     package My::CHI::Subclass;
 {
-  $My::CHI::Subclass::VERSION = '0.57';
+  $My::CHI::Subclass::VERSION = '0.58';
 }
     use base qw(My::CHI);
 }
@@ -43,7 +43,7 @@ my %config = (
 {
     package My::CHI::Memo;
 {
-  $My::CHI::Memo::VERSION = '0.57';
+  $My::CHI::Memo::VERSION = '0.58';
 }
     use base qw(CHI);
     My::CHI::Memo->config( { %config, memoize_cache_objects => 1 } );

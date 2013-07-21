@@ -1,6 +1,6 @@
 package CHI::Stats;
 {
-  $CHI::Stats::VERSION = '0.57';
+  $CHI::Stats::VERSION = '0.58';
 }
 use CHI::Util qw(json_encode json_decode);
 use List::Util qw(sum);
@@ -165,7 +165,7 @@ CHI::Stats - Record and report per-namespace cache statistics
 
 =head1 VERSION
 
-version 0.57
+version 0.58
 
 =head1 SYNOPSIS
 

@@ -3,7 +3,7 @@
 #
 package CHI::Serializer::Storable;
 {
-  $CHI::Serializer::Storable::VERSION = '0.57';
+  $CHI::Serializer::Storable::VERSION = '0.58';
 }
 use Moo;
 use Storable;

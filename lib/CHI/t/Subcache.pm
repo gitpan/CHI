@@ -1,6 +1,6 @@
 package CHI::t::Subcache;
 {
-  $CHI::t::Subcache::VERSION = '0.57';
+  $CHI::t::Subcache::VERSION = '0.58';
 }
 use CHI::Test;
 use CHI::Util qw(can_load);

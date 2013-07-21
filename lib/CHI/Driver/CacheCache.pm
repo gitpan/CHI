@@ -1,6 +1,6 @@
 package CHI::Driver::CacheCache;
 {
-  $CHI::Driver::CacheCache::VERSION = '0.57';
+  $CHI::Driver::CacheCache::VERSION = '0.58';
 }
 use Cache::Cache;
 use Carp;
@@ -47,7 +47,7 @@ CHI::Driver::CacheCache - CHI wrapper for Cache::Cache
 
 =head1 VERSION
 
-version 0.57
+version 0.58
 
 =head1 SYNOPSIS
 

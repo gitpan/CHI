@@ -1,6 +1,6 @@
 package CHI::Constants;
 {
-  $CHI::Constants::VERSION = '0.57';
+  $CHI::Constants::VERSION = '0.58';
 }
 use strict;
 use warnings;
@@ -28,7 +28,7 @@ CHI::Constants - Internal constants
 
 =head1 VERSION
 
-version 0.57
+version 0.58
 
 =head1 DESCRIPTION
 

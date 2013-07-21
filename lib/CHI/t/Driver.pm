@@ -1,6 +1,6 @@
 package CHI::t::Driver;
 {
-  $CHI::t::Driver::VERSION = '0.57';
+  $CHI::t::Driver::VERSION = '0.58';
 }
 use strict;
 use warnings;
@@ -587,7 +587,7 @@ sub test_serialize : Tests {
 {
     package DummySerializer;
 {
-  $DummySerializer::VERSION = '0.57';
+  $DummySerializer::VERSION = '0.58';
 }
     sub serialize   { }
     sub deserialize { }
@@ -1710,7 +1710,7 @@ sub test_no_leak : Tests {
 {
   package My::CHI;
 {
-  $My::CHI::VERSION = '0.57';
+  $My::CHI::VERSION = '0.58';
 }
   our @ISA = qw(CHI);
 }
