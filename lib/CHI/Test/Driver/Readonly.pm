@@ -1,7 +1,5 @@
 package CHI::Test::Driver::Readonly;
-{
-  $CHI::Test::Driver::Readonly::VERSION = '0.58';
-}
+$CHI::Test::Driver::Readonly::VERSION = '0.59';
 use Carp;
 use Moo;
 use strict;

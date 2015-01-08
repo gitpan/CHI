@@ -1,7 +1,5 @@
 package CHI::t::Driver::Subcache::mirror_cache;
-{
-  $CHI::t::Driver::Subcache::mirror_cache::VERSION = '0.58';
-}
+$CHI::t::Driver::Subcache::mirror_cache::VERSION = '0.59';
 use strict;
 use warnings;
 use CHI::Test;

@@ -1,15 +1,13 @@
 package CHI::Driver::Metacache;
-{
-  $CHI::Driver::Metacache::VERSION = '0.58';
-}
+$CHI::Driver::Metacache::VERSION = '0.59';
 use CHI::Constants qw(CHI_Meta_Namespace);
 use Moo;
 use strict;
 use warnings;
 
-has 'meta_cache'      => ( is => 'lazy', clearer => 'clear_meta_cache', predicate => 'has_meta_cache');
+has 'meta_cache'      => ( is => 'lazy', clearer => 'clear_meta_cache', predicate => 'has_meta_cache' );
 has 'owner_cache'     => ( is => 'ro', weak_ref => 1 );
-has 'owner_namespace' => ( is => 'lazy', clearer => 'clear_owner_namespace', predicate => 'has_owner_namespace');
+has 'owner_namespace' => ( is => 'lazy', clearer => 'clear_owner_namespace', predicate => 'has_owner_namespace' );
 
 sub _build_meta_cache {
     my ($self) = @_;
@@ -64,7 +62,7 @@ CHI::Driver::Metacache - Metacache for internal CHI use
 
 =head1 VERSION
 
-version 0.58
+version 0.59
 
 =head1 SYNOPSIS
 

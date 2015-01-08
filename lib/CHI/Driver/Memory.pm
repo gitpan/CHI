@@ -1,7 +1,5 @@
 package CHI::Driver::Memory;
-{
-  $CHI::Driver::Memory::VERSION = '0.58';
-}
+$CHI::Driver::Memory::VERSION = '0.59';
 use Carp qw(cluck croak);
 use CHI::Constants qw(CHI_Meta_Namespace);
 use Moo;
@@ -27,10 +25,10 @@ sub default_discard_policy { 'lru' }
 sub BUILD {
     my ( $self, $params ) = @_;
 
-    if ( $self->{global} ) {
+    if ( defined $self->{global} ) {
         croak "cannot specify both 'datastore' and 'global'"
           if ( defined( $self->{datastore} ) );
-        $self->{datastore} = \%Global_Datastore;
+        $self->{datastore} = $self->{global} ? \%Global_Datastore : {};
     }
     if ( !defined( $self->{datastore} ) ) {
         cluck "must specify either 'datastore' hashref or 'global' flag";
@@ -104,7 +102,7 @@ CHI::Driver::Memory - In-process memory based cache
 
 =head1 VERSION
 
-version 0.58
+version 0.59
 
 =head1 SYNOPSIS
 
@@ -114,6 +112,8 @@ version 0.58
     my $cache = CHI->new( driver => 'Memory', datastore => $hash );
 
     my $cache = CHI->new( driver => 'Memory', global => 1 );
+
+    my $cache = CHI->new( driver => 'Memory', global => 0 );
 
 =head1 DESCRIPTION
 
@@ -144,10 +144,13 @@ CHI::Driver::Memory constructors.
 
 =item global [BOOL]
 
-Use a standard global datastore. Multiple caches created with this flag will
-see the same data. Before 0.21, this was the default behavior; now it must be
-specified explicitly (to avoid accidentally sharing the same datastore in
+Use a standard global datastore. Multiple caches created with this set to true
+will see the same data. Before 0.21, this was the default behavior; now it must
+be specified explicitly (to avoid accidentally sharing the same datastore in
 unrelated code).
+
+If this is set to false then datastore will be set to a new reference to a
+hash.
 
 =back
 

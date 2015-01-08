@@ -1,7 +1,5 @@
 package CHI::Driver::FastMmap;
-{
-  $CHI::Driver::FastMmap::VERSION = '0.58';
-}
+$CHI::Driver::FastMmap::VERSION = '0.59';
 use Carp;
 use Cache::FastMmap;
 use CHI::Util qw(read_dir);
@@ -88,7 +86,7 @@ CHI::Driver::FastMmap - Persistent interprocess cache via mmap'ed files
 
 =head1 VERSION
 
-version 0.58
+version 0.59
 
 =head1 SYNOPSIS
 

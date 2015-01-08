@@ -1,7 +1,5 @@
 package CHI::t::Bugs;
-{
-  $CHI::t::Bugs::VERSION = '0.58';
-}
+$CHI::t::Bugs::VERSION = '0.59';
 use strict;
 use warnings;
 use CHI::Test;

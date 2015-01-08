@@ -1,7 +1,5 @@
 package CHI::t::RequiredModules;
-{
-  $CHI::t::RequiredModules::VERSION = '0.58';
-}
+$CHI::t::RequiredModules::VERSION = '0.59';
 use strict;
 use warnings;
 use CHI::Test;

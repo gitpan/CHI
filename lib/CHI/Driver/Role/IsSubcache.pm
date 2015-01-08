@@ -1,7 +1,5 @@
 package CHI::Driver::Role::IsSubcache;
-{
-  $CHI::Driver::Role::IsSubcache::VERSION = '0.58';
-}
+$CHI::Driver::Role::IsSubcache::VERSION = '0.59';
 use Moo::Role;
 use strict;
 use warnings;

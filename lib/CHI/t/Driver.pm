@@ -1,7 +1,5 @@
 package CHI::t::Driver;
-{
-  $CHI::t::Driver::VERSION = '0.58';
-}
+$CHI::t::Driver::VERSION = '0.59';
 use strict;
 use warnings;
 use CHI::Test;
@@ -161,7 +159,7 @@ sub test_encode : Tests {
     my $binary_off = $self->{keys}->{binary};
     my $binary_on  = substr( $binary_off . $utf8, 0, length($binary_off) );
 
-    ok( $binary_off eq $binary_on, "binary_off eq binary_on" );
+    ok( $binary_off eq $binary_on,     "binary_off eq binary_on" );
     ok( !Encode::is_utf8($binary_off), "!is_utf8(binary_off)" );
     ok( Encode::is_utf8($binary_on),   "is_utf8(binary_on)" );
 
@@ -170,8 +168,8 @@ sub test_encode : Tests {
     my $value = time;
     $cache->set( $utf8, $value );
     is( $cache->get($utf8), $value, "get" );
-    is( $cache->get($encoded), $value,
-        "encoded and non-encoded map to same value" );
+    is( $cache->get($encoded),
+        $value, "encoded and non-encoded map to same value" );
 
     # Key maps to same thing whether utf8 flag is off or on
     #
@@ -586,10 +584,8 @@ sub test_serialize : Tests {
 
 {
     package DummySerializer;
-{
-  $DummySerializer::VERSION = '0.58';
-}
-    sub serialize   { }
+$DummySerializer::VERSION = '0.59';
+sub serialize   { }
     sub deserialize { }
 }
 
@@ -635,7 +631,7 @@ sub test_serializers : Tests {
             my $serializer_param = (
                   $mode eq 'string' ? $variant
                 : $mode eq 'hash' ? { serializer => $variant }
-                : Data::Serializer->new( serializer => $variant )
+                :   Data::Serializer->new( serializer => $variant )
             );
             my $cache = $self->new_cache( serializer => $serializer_param );
             is( $cache->serializer->serializer,
@@ -696,7 +692,7 @@ sub test_namespaces : Tests {
         );
 
         foreach my $c ( $cache0, $cache1, $cache1a, $cache2, $cache3 ) {
-            cmp_deeply(
+            cmp_set(
                 [ $cache->get_namespaces() ],
                 [ $c->get_namespaces() ],
                 'get_namespaces the same regardless of which cache asks'
@@ -724,8 +720,11 @@ sub test_persist : Tests {
         $hash = $cache1->dump_as_hash();
     }
     my $cache2 = $self->new_cache();
-    cmp_deeply( $hash, $cache2->dump_as_hash(),
-        'cache persisted between cache object creations' );
+    cmp_deeply(
+        $hash,
+        $cache2->dump_as_hash(),
+        'cache persisted between cache object creations'
+    );
 }
 
 sub test_multi : Tests {
@@ -1120,12 +1119,12 @@ sub _test_common_subcache_features {
         my ($desc) = @_;
         is( $cache->get($key), $value,
             "primary cache is populated with '$key' - $desc" );
-        is( $subcache->get($key), $value,
-            "subcache is populated with '$key' - $desc" );
+        is( $subcache->get($key),
+            $value, "subcache is populated with '$key' - $desc" );
         is( $cache->get($key2), $value2,
             "primary cache is populated with '$key2' - $desc" );
-        is( $subcache->get($key2), $value2,
-            "subcache is populated with '$key2' - $desc" );
+        is( $subcache->get($key2),
+            $value2, "subcache is populated with '$key2' - $desc" );
     };
 
     $test_remove_method->(
@@ -1708,11 +1707,9 @@ sub test_no_leak : Tests {
 }
 
 {
-  package My::CHI;
-{
-  $My::CHI::VERSION = '0.58';
-}
-  our @ISA = qw(CHI);
+    package My::CHI;
+$My::CHI::VERSION = '0.59';
+our @ISA = qw(CHI);
 }
 
 sub test_driver_properties : Tests {

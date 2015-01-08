@@ -1,7 +1,5 @@
 package CHI::t::Driver::RawMemory;
-{
-  $CHI::t::Driver::RawMemory::VERSION = '0.58';
-}
+$CHI::t::Driver::RawMemory::VERSION = '0.59';
 use strict;
 use warnings;
 use CHI::Test;
@@ -9,16 +7,17 @@ use CHI::Test::Util qw(is_between);
 use base qw(CHI::t::Driver::Memory);
 
 sub new_cache {
-    my $self   = shift;
-    my %params = @_;
+    my $self = shift;
+
+    my %params = ( $self->new_cache_options(), @_, );
 
     # If new_cache called with datastore, ignore global flag (otherwise would be an error)
     #
     if ( $params{datastore} ) {
-        $params{global} = 0;
+        delete $params{global};
     }
 
-    my $cache = CHI->new( $self->new_cache_options(), %params );
+    my $cache = CHI->new(%params);
     return $cache;
 }
 

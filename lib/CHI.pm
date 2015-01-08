@@ -1,7 +1,5 @@
 package CHI;
-{
-  $CHI::VERSION = '0.58';
-}
+$CHI::VERSION = '0.59';
 use 5.006;
 use Carp;
 use CHI::Stats;
@@ -31,6 +29,7 @@ sub _set_config {
     if ( my @bad_keys = grep { !$valid_config_keys{$_} } keys(%$config) ) {
         croak "unknown keys in config hash: " . join( ", ", @bad_keys );
     }
+
     # set class specific configuration
     no strict 'refs';
     no warnings 'redefine';
@@ -146,7 +145,8 @@ sub new {
     # Select a final class based on the driver class and roles, creating it
     # if necessary - adapted from MooseX::Traits
     #
-    my $final_class = Moo::Role->create_class_with_roles($driver_class, @roles);
+    my $final_class =
+      Moo::Role->create_class_with_roles( $driver_class, @roles );
 
     my $cache_object = $final_class->new(
         chi_root_class => $chi_root_class,
@@ -175,7 +175,7 @@ CHI - Unified cache handling interface
 
 =head1 VERSION
 
-version 0.58
+version 0.59
 
 =head1 SYNOPSIS
 
@@ -483,10 +483,10 @@ I<$key> may be followed by one or more name/value parameters:
 =item expire_if [CODEREF]
 
 If I<$key> exists and has not expired, call code reference with the
-L<CHI::CacheObject|CHI::CacheObject> as a single parameter. If code returns a
-true value, C<get> returns undef as if the item were expired. For example, to
-treat the cache as expired if I<$file> has changed since the value was
-computed:
+L<CHI::CacheObject|CHI::CacheObject> and L<CHI::Driver|CHI::Driver> as the
+parameters. If code returns a true value, C<get> returns undef as if the item
+were expired. For example, to treat the cache as expired if I<$file> has
+changed since the value was computed:
 
     $cache->get('foo', expire_if => sub { $_[0]->created_at < (stat($file))[9] });
 
@@ -1143,6 +1143,7 @@ subclasses.
 Start with a trivial subclass:
 
     package My::CHI;
+
     use base qw(CHI);
     1;
 
@@ -1157,6 +1158,7 @@ This obviously doesn't change any behavior by itself. Here's an example with
 actual config:
 
     package My::CHI;
+
     use base qw(CHI);
 
     __PACKAGE__->config({
@@ -1399,7 +1401,7 @@ developing new drivers.
 =head1 LOGGING
 
 C<CHI> uses L<Log::Any|Log::Any> for logging events. For example, a debug log
-message is sent for every cache get and set.
+message is sent with category C<CHI::Driver> for every cache get and set.
 
 See L<Log::Any|Log::Any> documentation for how to control where logs get sent,
 if anywhere.

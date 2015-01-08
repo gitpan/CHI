@@ -1,7 +1,5 @@
 package CHI::Test::Driver::Role::CheckKeyValidity;
-{
-  $CHI::Test::Driver::Role::CheckKeyValidity::VERSION = '0.58';
-}
+$CHI::Test::Driver::Role::CheckKeyValidity::VERSION = '0.59';
 use Carp;
 use Moo::Role;
 use strict;

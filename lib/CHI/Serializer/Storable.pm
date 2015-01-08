@@ -2,16 +2,14 @@
 # Recommend Data::Serializer for other serializers, rather than reinventing the wheel.
 #
 package CHI::Serializer::Storable;
-{
-  $CHI::Serializer::Storable::VERSION = '0.58';
-}
+$CHI::Serializer::Storable::VERSION = '0.59';
 use Moo;
 use Storable;
 use strict;
 use warnings;
 
 sub serialize {
-    return Storable::freeze( $_[1] );
+    return Storable::nfreeze( $_[1] );
 }
 
 sub deserialize {

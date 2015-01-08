@@ -1,7 +1,5 @@
 package CHI::t::Driver::Memory;
-{
-  $CHI::t::Driver::Memory::VERSION = '0.58';
-}
+$CHI::t::Driver::Memory::VERSION = '0.59';
 use strict;
 use warnings;
 use CHI::Test;
@@ -19,13 +17,14 @@ sub new_cache_options {
 }
 
 sub new_cache {
-    my $self   = shift;
-    my %params = @_;
+    my $self = shift;
+
+    my %params = ( $self->new_cache_options(), @_ );
 
     # If new_cache called with datastore, ignore global flag (otherwise would be an error)
     #
     if ( $params{datastore} ) {
-        $params{global} = 0;
+        delete $params{global};
     }
 
     # Check test key validity on every get and set - only necessary to do for one driver
@@ -33,7 +32,7 @@ sub new_cache {
     $params{roles}       = ['+CHI::Test::Driver::Role::CheckKeyValidity'];
     $params{test_object} = $self;
 
-    my $cache = CHI->new( $self->new_cache_options(), %params );
+    my $cache = CHI->new(%params);
     return $cache;
 }
 
@@ -62,6 +61,16 @@ sub test_different_datastores : Tests {
     my $self   = shift;
     my $cache1 = CHI->new( driver => 'Memory', datastore => {} );
     my $cache2 = CHI->new( driver => 'Memory', datastore => {} );
+    $self->set_some_keys($cache1);
+    ok( !$cache2->get_keys() );
+}
+
+# Make sure two global=0 caches don't share datastore
+#
+sub test_different_global_0 : Tests {
+    my $self   = shift;
+    my $cache1 = CHI->new( driver => 'Memory', global => 0 );
+    my $cache2 = CHI->new( driver => 'Memory', global => 0 );
     $self->set_some_keys($cache1);
     ok( !$cache2->get_keys() );
 }

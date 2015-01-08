@@ -1,7 +1,5 @@
 package CHI::Driver::Role::IsSizeAware;
-{
-  $CHI::Driver::Role::IsSizeAware::VERSION = '0.58';
-}
+$CHI::Driver::Role::IsSizeAware::VERSION = '0.59';
 use Carp::Assert;
 use Moo::Role;
 use MooX::Types::MooseLike::Base qw(:all);
@@ -9,7 +7,7 @@ use CHI::Types qw(:all);
 use strict;
 use warnings;
 
-has 'discard_policy'            => ( is => 'lazy', isa => Maybe[DiscardPolicy]);
+has 'discard_policy'            => ( is => 'lazy', isa => Maybe[DiscardPolicy] );
 has 'discard_timeout'           => ( is => 'rw', isa => Num, default => sub { 10 } );
 has 'max_size'                  => ( is => 'rw', isa => MemorySize, coerce => \&to_MemorySize );
 has 'max_size_reduction_factor' => ( is => 'rw', isa => Num, default => sub { 0.8 } );
@@ -118,8 +116,7 @@ sub discard_to_size {
     local $self->{_no_set_size_on_remove} = 1;
     my $size = $self->get_size();
     eval {
-        while ( $size > $ceiling )
-        {
+        while ( $size > $ceiling ) {
             if ( defined( my $key = $discard_iterator->() ) ) {
                 if ( my $obj = $self->get_object($key) ) {
                     $self->remove($key);

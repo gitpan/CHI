@@ -1,7 +1,5 @@
 package CHI::Driver::Null;
-{
-  $CHI::Driver::Null::VERSION = '0.58';
-}
+$CHI::Driver::Null::VERSION = '0.59';
 use Moo;
 use strict;
 use warnings;
@@ -27,7 +25,7 @@ CHI::Driver::Null - Nothing is cached
 
 =head1 VERSION
 
-version 0.58
+version 0.59
 
 =head1 SYNOPSIS
 

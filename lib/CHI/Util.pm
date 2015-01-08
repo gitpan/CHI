@@ -1,7 +1,5 @@
 package CHI::Util;
-{
-  $CHI::Util::VERSION = '0.58';
-}
+$CHI::Util::VERSION = '0.59';
 use Carp qw( croak longmess );
 use Module::Runtime qw(require_module);
 use Data::Dumper;
@@ -148,7 +146,8 @@ sub write_file {
     }
 }
 
-use constant _FILE_SPEC_USING_UNIX => ($File::Spec::ISA[0] eq 'File::Spec::Unix');
+use constant _FILE_SPEC_USING_UNIX =>
+  ( $File::Spec::ISA[0] eq 'File::Spec::Unix' );
 
 sub fast_catdir {
     if (_FILE_SPEC_USING_UNIX) {
@@ -158,6 +157,7 @@ sub fast_catdir {
         return catdir(@_);
     }
 }
+
 sub fast_catfile {
     if (_FILE_SPEC_USING_UNIX) {
         return join '/', @_;
